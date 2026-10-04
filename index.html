@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HSRP & FHRP Provmästare | Cisco Labb & Exam Trainer</title>
+  <meta name="description" content="Träna inför provet på HSRP, VRRP, GLBP, Cisco CLI-kommandon och kompletta nätverkskonfigurationer med interaktiva kryssfrågor och topologikartor.">
+  <link rel="icon" href="logo-hsrp-purple.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-crimson">
+  <div class="bg-glow-orb bg-orb-1"></div>
+  <div class="bg-glow-orb bg-orb-2"></div>
+  <div class="bg-glow-orb bg-orb-3"></div>
+  <div class="grid-overlay"></div>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="logo-group">
+        <!-- New Purple Boxed HSRP Logo (from User Reference) -->
+        <div class="logo-icon-wrapper logo-hsrp-boxed" title="HSRP Logo">
+          <svg class="hsrp-boxed-logo" viewBox="0 0 160 84" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="6" y="6" width="148" height="72" rx="3" class="hsrp-logo-box" stroke="url(#purpleHeaderGrad)" stroke-width="6.5" />
+            <text x="80" y="58" text-anchor="middle" class="hsrp-logo-text" font-family="'Outfit', 'Segoe UI', 'Inter', -apple-system, sans-serif" font-weight="900" font-size="44" letter-spacing="2" fill="url(#purpleHeaderGrad)">HSRP</text>
+            <defs>
+              <linearGradient id="purpleHeaderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#e9d5ff" />
+                <stop offset="40%" stop-color="#c084fc" />
+                <stop offset="100%" stop-color="#a855f7" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <span class="pulse-dot"></span>
+        </div>
+        <div class="logo-titles">
+          <div class="badge-row">
+            <span class="badge badge-accent">FHRP • HSRP • VRRP • GLBP</span>
+            <span class="badge badge-hot">🔥 PROVFÖRBEREDELSE</span>
+          </div>
+          <h1 class="app-title">HSRP <span class="highlight">EXAM MASTER</span></h1>
+          <p class="app-subtitle">Interaktiv övningsplattform för Cisco-routing, redundans & CLI-konfigurationer</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Sound Toggle -->
+        <button id="soundToggleBtn" class="action-btn icon-btn" title="Växla ljudeffekter" aria-label="Ljud">
+          <span id="soundIcon">🔊</span>
+          <span class="btn-label">Ljud På</span>
+        </button>
+
+        <!-- Stats Overview Pill -->
+        <div class="stats-pill" id="globalStatsPill">
+          <div class="stat-item">
+            <span class="stat-lbl">Frågor klara</span>
+            <span class="stat-val" id="globalQuizScore">0 / 0</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-lbl">Streak</span>
+            <span class="stat-val streak-val" id="globalStreak">🔥 0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs-wrapper">
+      <div class="nav-tabs" role="tablist">
+        <button class="nav-tab active" data-tab="tab-quiz" role="tab" id="tabBtn-quiz">
+          <span class="tab-icon">🎯</span>
+          <span class="tab-text">Slumpade Kryssfrågor</span>
+          <span class="tab-badge" id="quizCountBadge">25+</span>
+        </button>
+        <button class="nav-tab" data-tab="tab-diginto" role="tab" id="tabBtn-diginto">
+          <span class="tab-icon">🌐</span>
+          <span class="tab-text">Diginto Frågor</span>
+          <span class="tab-badge badge-hot">Nyhet 20+</span>
+        </button>
+        <button class="nav-tab" data-tab="tab-commands" role="tab" id="tabBtn-commands">
+          <span class="tab-icon">⚡</span>
+          <span class="tab-text">HSRP Kommandon</span>
+          <span class="tab-badge">Cisco CLI</span>
+        </button>
+        <button class="nav-tab" data-tab="tab-configs" role="tab" id="tabBtn-configs">
+          <span class="tab-icon">📝</span>
+          <span class="tab-text">Hela Konfigurationerna</span>
+          <span class="tab-badge">ISP • MLS1 • MLS2</span>
+        </button>
+        <button class="nav-tab" data-tab="tab-topologies" role="tab" id="tabBtn-topologies">
+          <span class="tab-icon">🗺️</span>
+          <span class="tab-text">Topologi & Nätverkskarta</span>
+          <span class="tab-badge">Packet Tracer</span>
+        </button>
+        <button class="nav-tab" data-tab="tab-theory" role="tab" id="tabBtn-theory">
+          <span class="tab-icon">📖</span>
+          <span class="tab-text">Snabbguide & Provfusk</span>
+          <span class="tab-badge">Facit</span>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-content">
+
+    <!-- ==================== TAB 1: KRYSSFRÅGOR ==================== -->
+    <section id="tab-quiz" class="tab-pane active" role="tabpanel">
+      <div class="pane-header">
+        <div class="pane-title-wrap">
+          <div class="pane-icon">🎯</div>
+          <div>
+            <h2>Kryssfrågor med slumpade frågor & svarsalternativ</h2>
+            <p>Varje gång du startar eller klickar på "Ny Slumpad Omgång" blandas alla frågor och svarsalternativen helt automatiskt.</p>
+          </div>
+        </div>
+        <div class="pane-controls">
+          <button id="restartQuizBtn" class="btn btn-outline">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.19"/></svg>
+            Slumpa Ny Omgång
+          </button>
+          <div class="filter-dropdown-wrap">
+            <select id="quizCategoryFilter" class="custom-select">
+              <option value="all">Alla kategorier (Alla provfrågor)</option>
+              <option value="fhrp-intro">FHRP & Protokolljämförelse</option>
+              <option value="hsrp-core">HSRP Detaljer & MAC/Port/Prioritet</option>
+              <option value="hsrp-states">HSRP:s 6 Tillstånd</option>
+              <option value="vrrp-glbp">VRRP & GLBP Detaljer</option>
+              <option value="topology-cli">Topologi, SVI & Konfigurationskommandon</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quiz Card Area -->
+      <div class="quiz-container">
+        <!-- Progress Bar -->
+        <div class="quiz-progress-card card">
+          <div class="progress-info-row">
+            <span class="progress-step-lbl" id="quizStepText">Fråga 1 av 25</span>
+            <span class="progress-category-badge" id="quizCatBadge">HSRP Kärna</span>
+            <span class="progress-percent-lbl" id="quizScoreDisplay">Rätt: 0 | Fel: 0</span>
+          </div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="quizProgressBar" style="width: 4%;"></div>
+          </div>
+        </div>
+
+        <!-- Question View -->
+        <div class="quiz-question-card card" id="quizCard">
+          <div class="question-header">
+            <div class="q-number-pill" id="qNumberPill">#1</div>
+            <div class="q-importance-tag" id="qImportanceTag">★ KOMMER PÅ PROV</div>
+          </div>
+
+          <h3 class="question-title" id="quizQuestionText">Frågetext laddas...</h3>
+          <div class="question-context" id="quizQuestionContext" style="display: none;"></div>
+
+          <!-- Multiple choice options (Shuffled) -->
+          <div class="options-grid" id="quizOptionsContainer">
+            <!-- Populated dynamically via JS -->
+          </div>
+
+          <!-- Explanation box (Revealed upon selection) -->
+          <div class="explanation-box" id="quizExplanationBox" style="display: none;">
+            <div class="explanation-title" id="explanationTitle">
+              <span id="explanationIcon">💡</span>
+              <span id="explanationHeader">Förklaring</span>
+            </div>
+            <p id="explanationText" class="explanation-content"></p>
+            <div class="explanation-ref" id="explanationRef"></div>
+          </div>
+
+          <!-- Card footer / Next button -->
+          <div class="card-footer">
+            <button id="skipQuestionBtn" class="btn btn-ghost">Hoppa över</button>
+            <button id="nextQuestionBtn" class="btn btn-primary" disabled>
+              Nästa fråga
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Summary modal / overlay if quiz finished -->
+        <div class="quiz-finished-card card" id="quizFinishedCard" style="display: none;">
+          <div class="finished-content">
+            <div class="trophy-icon">🏆</div>
+            <h3>Snyggt jobbat! Omgången är klar!</h3>
+            <p class="final-score-lead" id="finalScoreLead">Du fick 22 av 25 rätt (88%)</p>
+            <div class="score-breakdown" id="finalScoreBreakdown"></div>
+            <div class="finished-actions">
+              <button id="restartFinishedQuizBtn" class="btn btn-primary btn-large">
+                🔀 Starta Ny Slumpad Omgång
+              </button>
+              <button class="btn btn-outline" onclick="document.getElementById('tabBtn-diginto').click()">
+                🌐 Testa Diginto-frågorna
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: DIGINTO FRÅGOR ==================== -->
+    <section id="tab-diginto" class="tab-pane" role="tabpanel">
+      <div class="pane-header">
+        <div class="pane-title-wrap">
+          <div class="pane-icon">🌐</div>
+          <div>
+            <h2>Diginto FHRP & HSRP Certifieringsfrågor</h2>
+            <p>
+              Baserat direkt på kursmaterialet från <a href="https://administration-utrustning.diginto.se/fhrp-koncepten/mer-om-fhrp/" target="_blank" rel="noopener" style="color: var(--accent-light); text-decoration: underline;">Mer om FHRP</a> och <a href="https://administration-utrustning.diginto.se/fhrp-koncepten/hsrp-oversikt/" target="_blank" rel="noopener" style="color: var(--accent-light); text-decoration: underline;">HSRP översikt</a>. Både frågor och svarsalternativ slumpas automatiskt!
+            </p>
+          </div>
+        </div>
+        <div class="pane-controls">
+          <button id="restartDigintoBtn" class="btn btn-outline">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.19"/></svg>
+            Slumpa Ny Omgång
+          </button>
+          <div class="filter-dropdown-wrap">
+            <select id="digintoCategoryFilter" class="custom-select">
+              <option value="all">Alla Diginto-frågor (Hela kursinnehållet)</option>
+              <option value="multicast-timers">Multicast-adresser & Timers</option>
+              <option value="election-preempt">Valprocess, Tiebreaker & Preemption</option>
+              <option value="states-deep">HSRP:s 6 Tillstånd (Fördjupning)</option>
+              <option value="glbp-deep">GLBP: Per-MAC & Per-Destination</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Diginto Quiz Container Area -->
+      <div class="quiz-container">
+        <!-- Progress Bar -->
+        <div class="quiz-progress-card card">
+          <div class="progress-info-row">
+            <span class="progress-step-lbl" id="digintoStepText">Fråga 1 av 20</span>
+            <span class="progress-category-badge" id="digintoCatBadge">Diginto FHRP</span>
+            <span class="progress-percent-lbl" id="digintoScoreDisplay">Rätt: 0 | Fel: 0</span>
+          </div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="digintoProgressBar" style="width: 5%;"></div>
+          </div>
+        </div>
+
+        <!-- Question View -->
+        <div class="quiz-question-card card" id="digintoCard">
+          <div class="question-header">
+            <div class="q-number-pill" id="digintoNumberPill">#1</div>
+            <div class="q-importance-tag" id="digintoSourceTag">🌐 DIGINTO CCNA 2</div>
+          </div>
+
+          <h3 class="question-title" id="digintoQuestionText">Frågetext laddas...</h3>
+
+          <!-- Multiple choice options (Shuffled) -->
+          <div class="options-grid" id="digintoOptionsContainer">
+            <!-- Populated dynamically via JS -->
+          </div>
+
+          <!-- Explanation box -->
+          <div class="explanation-box" id="digintoExplanationBox" style="display: none;">
+            <div class="explanation-title" id="digintoExplanationTitle">
+              <span id="digintoExplanationIcon">💡</span>
+              <span id="digintoExplanationHeader">Förklaring</span>
+            </div>
+            <p id="digintoExplanationText" class="explanation-content"></p>
+            <div class="explanation-ref" id="digintoExplanationRef"></div>
+          </div>
+
+          <!-- Card footer / Next button -->
+          <div class="card-footer">
+            <button id="skipDigintoBtn" class="btn btn-ghost">Hoppa över</button>
+            <button id="nextDigintoBtn" class="btn btn-primary" disabled>
+              Nästa fråga
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Diginto Finished Card -->
+        <div class="quiz-finished-card card" id="digintoFinishedCard" style="display: none;">
+          <div class="finished-content">
+            <div class="trophy-icon">🎓</div>
+            <h3>Grymt jobbat! Diginto-omgången är slutförd!</h3>
+            <p class="final-score-lead" id="digintoFinalScoreLead">Du fick 18 av 20 rätt (90%)</p>
+            <div class="score-breakdown" id="digintoFinalScoreBreakdown"></div>
+            <div class="finished-actions">
+              <button id="restartFinishedDigintoBtn" class="btn btn-primary btn-large">
+                🔀 Starta Ny Slumpad Omgång
+              </button>
+              <button class="btn btn-outline" onclick="document.getElementById('tabBtn-commands').click()">
+                ⚡ Träna Cisco CLI-kommandon
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: TRÄNA KOMMANDON ==================== -->
+    <section id="tab-commands" class="tab-pane" role="tabpanel">
+      <div class="pane-header">
+        <div class="pane-title-wrap">
+          <div class="pane-icon">⚡</div>
+          <div>
+            <h2>HSRP Kommandoträning (Cisco IOS)</h2>
+            <p>Träna in de viktigaste kommandona för HSRP: version, virtuell IP, prioritet, preemption, tracking, timers, autentisering och show-kommandon. Endast HSRP!</p>
+          </div>
+        </div>
+        <div class="pane-controls">
+          <div class="mode-toggle">
+            <button class="mode-btn active" id="cmdModeTypeBtn" data-mode="typing">⌨️ Skriv i Cisco Prompt</button>
+            <button class="mode-btn" id="cmdModeCardBtn" data-mode="cards">🗂️ Flashcards & Facit</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Command Categories Bar -->
+      <div class="command-cat-nav" id="commandCatNav">
+        <button class="cmd-cat-chip active" data-cat="all">Alla HSRP-Kommandon</button>
+        <button class="cmd-cat-chip" data-cat="hsrp-basic">Grund & Virtuell IP</button>
+        <button class="cmd-cat-chip" data-cat="prio-preempt">Prioritet & Preemption</button>
+        <button class="cmd-cat-chip" data-cat="track-timers">Tracking & Timers</button>
+        <button class="cmd-cat-chip" data-cat="auth">Autentisering</button>
+        <button class="cmd-cat-chip" data-cat="show">Show & Debug</button>
+      </div>
+
+      <!-- Mode 1: Interactive Terminal Trainer -->
+      <div id="cmdTypingView" class="cmd-view-section">
+        <div class="cmd-trainer-layout">
+          <!-- Left: Challenge Box -->
+          <div class="cmd-challenge-card card">
+            <div class="challenge-meta">
+              <span class="badge badge-accent" id="cmdTargetDevice">MLS1(config-if)#</span>
+              <span class="badge badge-hot" id="cmdDifficulty">Provkrav</span>
+              <span class="cmd-counter" id="cmdCounter">1 / 15</span>
+            </div>
+
+            <h3 class="cmd-goal-title" id="cmdGoalTitle">Konfigurera HSRP version 2 på interfacenivå</h3>
+            <p class="cmd-goal-desc" id="cmdGoalDesc">
+              För att stödja fler grupper och IPv6 samt den nya MAC-adressen <code class="code-inline">0000.0c9f.f001</code> måste vi sätta HSRP till version 2.
+            </p>
+
+            <div class="cmd-hint-box" id="cmdHintBox" style="display: none;">
+              <span class="hint-icon">💡</span>
+              <span id="cmdHintText">Tips: Kommandot börjar med 'standby...'</span>
+            </div>
+
+            <!-- Terminal Screen -->
+            <div class="cisco-terminal-screen">
+              <div class="terminal-bar">
+                <span class="term-dot red"></span>
+                <span class="term-dot yellow"></span>
+                <span class="term-dot green"></span>
+                <span class="term-title" id="terminalTitle">Cisco IOS CLI - Switch Console</span>
+              </div>
+              <div class="terminal-body" id="terminalLog">
+                <div class="term-line output">Cisco IOS Software, C3650 Software (CAT3K_CAA-UNIVERSALK9-M), Version 16.6.4</div>
+                <div class="term-line output">Redundancy / FHRP Configuration Mode Active.</div>
+                <div class="term-line instruction">Skriv rätt Cisco IOS-kommando nedan och tryck Enter:</div>
+              </div>
+              <div class="terminal-input-row">
+                <span class="term-prompt" id="termPrompt">MLS1(config-if)#</span>
+                <input type="text" id="terminalInput" class="term-input" placeholder="Skriv Cisco-kommando här..." autocomplete="off" spellcheck="false">
+                <button id="submitCmdBtn" class="btn btn-primary btn-sm">Kör ↵</button>
+              </div>
+            </div>
+
+            <!-- Terminal Action buttons -->
+            <div class="terminal-actions">
+              <button id="showCmdHintBtn" class="btn btn-ghost btn-sm">Visa Tips</button>
+              <button id="showCmdAnswerBtn" class="btn btn-ghost btn-sm">Visa Rätt Svar</button>
+              <button id="nextCmdBtn" class="btn btn-outline btn-sm">Nästa Kommando ➔</button>
+            </div>
+
+            <div class="cmd-feedback-bar" id="cmdFeedbackBar" style="display: none;">
+              <!-- Dynamic message -->
+            </div>
+          </div>
+
+          <!-- Right: Command Quick Library -->
+          <div class="cmd-quick-sidebar card">
+            <h4 class="sidebar-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              Snabbväljare för övning
+            </h4>
+            <p class="sidebar-sub">Klicka på ett kommando för att träna på det direkt:</p>
+            <div class="cmd-list-scrollable" id="commandQuickList">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode 2: Flashcards View -->
+      <div id="cmdCardsView" class="cmd-view-section" style="display: none;">
+        <div class="cards-grid" id="commandCardsGrid">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: HELA KONFIGURATIONERNA ==================== -->
+    <section id="tab-configs" class="tab-pane" role="tabpanel">
+      <div class="pane-header">
+        <div class="pane-title-wrap">
+          <div class="pane-icon">📝</div>
+          <div>
+            <h2>Hela Konfigurationerna (Skriv & Validera)</h2>
+            <p>Träna på att skriva hela Cisco-konfigurationsblocket för <strong>ISP</strong>, <strong>MLS1</strong> och <strong>MLS2</strong> med omedelbar rad-för-rad rättning!</p>
+          </div>
+        </div>
+        <div class="pane-controls">
+          <div class="device-pill-selector">
+            <button class="device-btn active" data-device="mls1">
+              <span class="device-role">Prioritet 105 (Aktiv)</span>
+              <strong>MLS1 (VLAN 10 + HSRP)</strong>
+            </button>
+            <button class="device-btn" data-device="mls2">
+              <span class="device-role">Prioritet 100 (Standby)</span>
+              <strong>MLS2 (VLAN 10 + HSRP)</strong>
+            </button>
+            <button class="device-btn" data-device="isp">
+              <span class="device-role">Floating Static Route</span>
+              <strong>ISP (Internet Router/Switch)</strong>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Device Configuration Workspace -->
+      <div class="config-workspace-grid">
+        <!-- Left: Context & Topology Miniature -->
+        <div class="config-context-col">
+          <div class="card mini-topo-card">
+            <div class="mini-topo-header">
+              <h4 id="cfgContextTitle">MLS1 Konfiguration & Nätverksroll</h4>
+              <span class="badge badge-accent" id="cfgRoleBadge">HSRP Active</span>
+            </div>
+            
+            <!-- Dynamic Mini Diagram with highlighted ports -->
+            <div class="mini-diagram-container" id="miniDiagramWrap">
+              <svg viewBox="0 0 540 280" class="mini-topo-svg" id="miniTopoSvg">
+                <!-- SVG dynamically drawn in JS for selected device -->
+              </svg>
+            </div>
+
+            <!-- Parameters Cheat List -->
+            <div class="cfg-params-table-wrap">
+              <table class="cfg-params-table" id="cfgParamsTable">
+                <!-- Populated via JS -->
+              </table>
+            </div>
+
+            <div class="cfg-callout">
+              <strong>Viktigt till provet:</strong>
+              <p id="cfgImportantNote">MLS1 har prioritet 105 och 'standby 10 track g1/0/3'. Om länken mot ISP bryts sänks prioriteten så att MLS2 tar över!</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Code Editor & Validator -->
+        <div class="config-editor-col">
+          <div class="editor-card card">
+            <div class="editor-header">
+              <div class="editor-tabs">
+                <button class="ed-tab active" id="editorWriteTab">✍️ Skriv / Redigera</button>
+                <button class="ed-tab" id="editorGuidedTab">🧩 Guidat Läge (Luckor)</button>
+                <button class="ed-tab" id="editorSolutionTab">👁️ Visa Facit</button>
+              </div>
+              <div class="editor-tools">
+                <button class="btn btn-ghost btn-sm" id="loadTemplateBtn" title="Ladda grundmall">📋 Ladda Mall</button>
+                <button class="btn btn-ghost btn-sm" id="clearEditorBtn" title="Töm rutan">🗑️ Rensa</button>
+                <button class="btn btn-ghost btn-sm" id="copySolutionBtn" title="Kopiera facit">📋 Kopiera</button>
+              </div>
+            </div>
+
+            <!-- Free Text Editor View -->
+            <div id="editorTextView" class="editor-view-mode">
+              <div class="editor-textarea-wrapper">
+                <div class="line-numbers" id="editorLineNumbers">1</div>
+                <textarea id="configCodeEditor" class="code-textarea" spellcheck="false" placeholder="Skriv in Cisco-konfigurationen här rad för rad...
+Exempel:
+en
+conf t
+ip routing
+interface g1/0/2
+..."></textarea>
+              </div>
+              <div class="editor-footer">
+                <div class="editor-status" id="editorValidationSummary">
+                  Skriv din konfiguration och klicka på "Validera Konfiguration" för rad-för-rad feedback.
+                </div>
+                <button class="btn btn-primary" id="validateConfigBtn">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  Validera Konfiguration
+                </button>
+              </div>
+            </div>
+
+            <!-- Guided Fill-in View -->
+            <div id="editorGuidedView" class="editor-view-mode" style="display: none;">
+              <div class="guided-instructions">
+                Fyll i de saknade kommandona eller parametrarna i luckorna nedan och tryck på "Rätta":
+              </div>
+              <div class="guided-inputs-container" id="guidedInputsContainer">
+                <!-- Dynamically generated guided inputs -->
+              </div>
+              <div class="editor-footer">
+                <button class="btn btn-primary" id="checkGuidedBtn">Rätta Luckor</button>
+              </div>
+            </div>
+
+            <!-- Solution View -->
+            <div id="editorSolutionView" class="editor-view-mode" style="display: none;">
+              <div class="solution-display">
+                <pre><code id="solutionCodeBlock" class="cisco-code"></code></pre>
+              </div>
+            </div>
+
+            <!-- Validation Results Drawer / Panel -->
+            <div class="validation-drawer" id="validationDrawer" style="display: none;">
+              <div class="drawer-header">
+                <span class="drawer-title" id="drawerTitle">Valideringsresultat</span>
+                <span class="drawer-score" id="drawerScoreBadge">0% match</span>
+              </div>
+              <div class="validation-details-list" id="validationDetailsList">
+                <!-- Line by line diff / status -->
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: TOPOLOGIER & NÄTVERKSKARTA ==================== -->
+    <section id="tab-topologies" class="tab-pane" role="tabpanel">
+      <div class="pane-header">
+        <div class="pane-title-wrap">
+          <div class="pane-icon">🗺️</div>
+          <div>
+            <h2>Interaktiva Topologier & Nätverkskartor</h2>
+            <p>Se exakta Packet Tracer-diagram från dokumentet med klickbara enheter, gränssnitt, IP-adresser och HSRP-roller.</p>
+          </div>
+        </div>
+        <div class="pane-controls">
+          <div class="topo-toggle">
+            <button class="topo-tab-btn active" data-topo="topo1">Topologi 1: ISP - MLS1 - MLS2 (Provhuvudlabb)</button>
+            <button class="topo-tab-btn" data-topo="topo2">Topologi 2: MLS1 - R1 - R2 (Sida 7 Labb)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Topology 1 Container -->
+      <div id="topoView1" class="topo-view-active">
+        <div class="topo-card card">
+          <div class="topo-legend-bar">
+            <div class="legend-item"><span class="leg-dot active-dot"></span> MLS1: HSRP Active (Prio 105, Preempt)</div>
+            <div class="legend-item"><span class="leg-dot standby-dot"></span> MLS2: HSRP Standby (Prio 100)</div>
+            <div class="legend-item"><span class="leg-dot virtual-dot"></span> Virtuell Gateway: 192.168.10.1 (MAC: 0000.0c9f.f001)</div>
+            <div class="legend-item"><span class="leg-dot routed-dot"></span> Routade Länkar (/30) mot ISP</div>
+          </div>
+
+          <div class="interactive-topo-stage">
+            <!-- Full Interactive SVG for Topology 1 -->
+            <svg viewBox="0 0 920 540" class="full-topo-svg" id="fullTopoSvg1">
+              <defs>
+                <filter id="glowRed" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="6" result="blur" />
+                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+                <filter id="glowCyan" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="5" result="blur" />
+                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+              </defs>
+
+              <!-- Connection Lines -->
+              <!-- ISP to Server0 -->
+              <line x1="495" y1="60" x2="740" y2="60" class="topo-wire wire-isp-server" stroke="#4a5568" stroke-width="3" stroke-dasharray="6,4"/>
+              
+              <!-- ISP to MLS1 -->
+              <line x1="435" y1="75" x2="230" y2="185" class="topo-wire wire-routed" stroke="#ff3366" stroke-width="3.5"/>
+              
+              <!-- ISP to MLS2 -->
+              <line x1="485" y1="75" x2="690" y2="185" class="topo-wire wire-routed wire-backup" stroke="#ff9900" stroke-width="3.5" stroke-dasharray="8,5"/>
+              
+              <!-- MLS1 to S1 -->
+              <line x1="225" y1="225" x2="435" y2="345" class="topo-wire wire-trunk" stroke="#00f2fe" stroke-width="3"/>
+              
+              <!-- MLS2 to S1 -->
+              <line x1="695" y1="225" x2="485" y2="345" class="topo-wire wire-trunk" stroke="#00f2fe" stroke-width="3"/>
+              
+              <!-- S1 to PC0 -->
+              <line x1="460" y1="380" x2="460" y2="455" class="topo-wire wire-access" stroke="#00e676" stroke-width="3"/>
+
+              <!-- Subnet & Port Badges / Text -->
+              <!-- Link ISP - MLS1 -->
+              <g class="label-group">
+                <rect x="240" y="95" width="130" height="24" rx="5" class="label-bg"/>
+                <text x="305" y="111" class="label-txt">203.0.113.0/30</text>
+                <text x="400" y="55" class="port-txt">Gig1/0/3 (.1)</text>
+                <text x="175" y="150" class="port-txt">Gig1/0/3 (.2)</text>
+              </g>
+
+              <!-- Link ISP - MLS2 -->
+              <g class="label-group">
+                <rect x="580" y="95" width="130" height="24" rx="5" class="label-bg"/>
+                <text x="645" y="111" class="label-txt">203.0.113.4/30</text>
+                <text x="525" y="55" class="port-txt">Gig1/0/4 (.5)</text>
+                <text x="745" y="150" class="port-txt">Gig1/0/4 (.6)</text>
+                <rect x="575" y="125" width="140" height="20" rx="4" class="label-bg-warning"/>
+                <text x="645" y="139" class="label-txt-warning">Floating Route (AD 5)</text>
+              </g>
+
+              <!-- Link ISP - Server0 -->
+              <g class="label-group">
+                <text x="560" y="45" class="port-txt">Gig1/0/24</text>
+                <text x="705" y="45" class="port-txt">Fa0</text>
+                <rect x="590" y="55" width="105" height="22" rx="4" class="label-bg"/>
+                <text x="642" y="70" class="label-txt">8.8.8.8/28</text>
+              </g>
+
+              <!-- VLAN 10 Virtual Gateway Box -->
+              <g class="hsrp-cluster-box">
+                <rect x="315" y="175" width="290" height="64" rx="10" class="hsrp-cluster-bg"/>
+                <text x="460" y="196" class="hsrp-box-title">HSRPv2 GRUPP 10 • VIRTUELL ROUTER</text>
+                <text x="460" y="214" class="hsrp-box-ip">VIP: 192.168.10.1 (Default Gateway)</text>
+                <text x="460" y="229" class="hsrp-box-mac">MAC: 0000.0c9f.f001 • UDP 1985</text>
+              </g>
+
+              <!-- Ports MLS1 to S1 -->
+              <text x="250" y="280" class="port-txt">Gig1/0/2</text>
+              <text x="390" y="335" class="port-txt">Gig0/1</text>
+
+              <!-- Ports MLS2 to S1 -->
+              <text x="670" y="280" class="port-txt">Gig1/0/2</text>
+              <text x="530" y="335" class="port-txt">Gig0/2</text>
+
+              <!-- S1 to PC0 -->
+              <text x="475" y="405" class="port-txt">Fa0/1</text>
+              <text x="475" y="450" class="port-txt">Fa0</text>
+              <rect x="520" y="415" width="130" height="24" rx="5" class="label-bg"/>
+              <text x="585" y="431" class="label-txt">192.168.10.0/24</text>
+
+              <!-- NODE: ISP -->
+              <g class="topo-node-elem" id="node-isp" transform="translate(460, 60)">
+                <circle cx="0" cy="0" r="30" class="node-circle node-isp-circle"/>
+                <path d="M-10 -10 L10 10 M10 -10 L-10 10 M-14 0 L14 0 M0 -14 L0 14" stroke="#fff" stroke-width="2.2" opacity="0.8"/>
+                <text x="0" y="-36" class="node-title">ISP</text>
+                <text x="0" y="46" class="node-sub">L3 Switch / Internet</text>
+              </g>
+
+              <!-- NODE: Server0 -->
+              <g class="topo-node-elem" id="node-server" transform="translate(760, 60)">
+                <rect x="-22" y="-28" width="44" height="56" rx="6" class="node-server-rect"/>
+                <line x1="-14" y1="-14" x2="14" y2="-14" stroke="#00f2fe" stroke-width="2"/>
+                <line x1="-14" y1="-4" x2="14" y2="-4" stroke="#00f2fe" stroke-width="2"/>
+                <circle cx="10" cy="14" r="3" fill="#00e676"/>
+                <text x="0" y="-34" class="node-title">Server0</text>
+                <text x="0" y="44" class="node-sub">8.8.8.8/28</text>
+              </g>
+
+              <!-- NODE: MLS1 (Active) -->
+              <g class="topo-node-elem" id="node-mls1" transform="translate(200, 200)">
+                <circle cx="0" cy="0" r="34" class="node-circle node-mls1-circle" filter="url(#glowRed)"/>
+                <polygon points="0,-14 12,-5 12,10 0,18 -12,10 -12,-5" fill="none" stroke="#fff" stroke-width="2"/>
+                <text x="0" y="-40" class="node-title">MLS1 (Active)</text>
+                <text x="0" y="50" class="node-sub">SVI 192.168.10.2 | Prio 105</text>
+              </g>
+
+              <!-- NODE: MLS2 (Standby) -->
+              <g class="topo-node-elem" id="node-mls2" transform="translate(720, 200)">
+                <circle cx="0" cy="0" r="34" class="node-circle node-mls2-circle"/>
+                <polygon points="0,-14 12,-5 12,10 0,18 -12,10 -12,-5" fill="none" stroke="#fff" stroke-width="2"/>
+                <text x="0" y="-40" class="node-title">MLS2 (Standby)</text>
+                <text x="0" y="50" class="node-sub">SVI 192.168.10.3 | Prio 100</text>
+              </g>
+
+              <!-- NODE: S1 -->
+              <g class="topo-node-elem" id="node-s1" transform="translate(460, 360)">
+                <rect x="-32" y="-16" width="64" height="32" rx="5" class="node-l2-rect"/>
+                <path d="M-18 -5 L-9 5 M-9 -5 L-18 5 M9 -5 L18 5 M18 -5 L9 5" stroke="#fff" stroke-width="2"/>
+                <text x="0" y="-24" class="node-title">S1 (Layer 2 Switch)</text>
+                <text x="0" y="28" class="node-sub">VLAN 10 Access Switch</text>
+              </g>
+
+              <!-- NODE: PC0 -->
+              <g class="topo-node-elem" id="node-pc0" transform="translate(460, 480)">
+                <rect x="-24" y="-16" width="48" height="32" rx="4" class="node-pc-rect"/>
+                <rect x="-8" y="16" width="16" height="5" fill="#718096"/>
+                <line x1="-16" y1="21" x2="16" y2="21" stroke="#718096" stroke-width="2.5"/>
+                <text x="0" y="-24" class="node-title">PC0 (Klient)</text>
+                <text x="0" y="34" class="node-sub">Default Gateway: 192.168.10.1</text>
+              </g>
+            </svg>
+          </div>
+
+          <!-- Clickable Device Details Drawer -->
+          <div class="topo-interactive-info" id="topoDeviceInfo">
+            <div class="info-header">
+              <span class="info-badge" id="topoInfoBadge">Klicka på en enhet ovan</span>
+              <h4 id="topoInfoTitle">Interaktiv Inspektör</h4>
+            </div>
+            <div class="info-body" id="topoInfoBody">
+              Klicka på MLS1, MLS2, ISP eller PC0 i diagrammet för att se dess portar, IP-tilldelning, konfigurationssnutt och roll i HSRP-labbet.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Topology 2 Container (Sida 7) -->
+      <div id="topoView2" class="topo-view-section" style="display: none;">
+        <div class="topo-card card">
+          <div class="topo-legend-bar">
+            <div class="legend-item"><span class="leg-dot active-dot"></span> MLS1 (3650): 192.168.1.1 & 192.168.2.1 /30</div>
+            <div class="legend-item"><span class="leg-dot standby-dot"></span> R1 (2911): 172.16.1.2/24</div>
+            <div class="legend-item"><span class="leg-dot standby-dot"></span> R2 (2911): 172.16.1.3/24</div>
+            <div class="legend-item"><span class="leg-dot virtual-dot"></span> Virtuell Gateway: 172.16.1.1 (LAN)</div>
+          </div>
+
+          <div class="interactive-topo-stage">
+            <svg viewBox="0 0 920 540" class="full-topo-svg" id="fullTopoSvg2">
+              <!-- Connections -->
+              <!-- MLS1 to Server-PT -->
+              <line x1="495" y1="60" x2="735" y2="60" stroke="#718096" stroke-width="3" stroke-dasharray="6,4"/>
+              
+              <!-- MLS1 to R1 & MLS1 to R2 -->
+              <line x1="435" y1="75" x2="230" y2="185" stroke="#ff3366" stroke-width="3.5"/>
+              <line x1="485" y1="75" x2="690" y2="185" stroke="#ff3366" stroke-width="3.5"/>
+              
+              <!-- R1 to S1 & R2 to S1 -->
+              <line x1="225" y1="225" x2="435" y2="345" stroke="#00f2fe" stroke-width="3"/>
+              <line x1="695" y1="225" x2="485" y2="345" stroke="#00f2fe" stroke-width="3"/>
+
+              <!-- S1 to PC1 & PC2 -->
+              <line x1="440" y1="375" x2="330" y2="455" stroke="#00e676" stroke-width="3"/>
+              <line x1="480" y1="375" x2="590" y2="455" stroke="#00e676" stroke-width="3"/>
+
+              <!-- Subnet labels -->
+              <g class="label-group">
+                <rect x="240" y="105" width="130" height="24" rx="5" class="label-bg"/>
+                <text x="305" y="121" class="label-txt">192.168.1.0/30</text>
+              </g>
+
+              <g class="label-group">
+                <rect x="580" y="105" width="130" height="24" rx="5" class="label-bg"/>
+                <text x="645" y="121" class="label-txt">192.168.2.0/30</text>
+              </g>
+
+              <!-- Virtual IP Center Box -->
+              <g class="label-group">
+                <rect x="365" y="180" width="190" height="40" rx="8" class="label-bg-accent"/>
+                <text x="460" y="205" class="label-txt-large">VIP: 172.16.1.1 (LAN)</text>
+              </g>
+
+              <!-- Server Network -->
+              <g class="label-group">
+                <rect x="580" y="45" width="120" height="24" rx="5" class="label-bg"/>
+                <text x="640" y="61" class="label-txt">10.10.10.0/24</text>
+              </g>
+
+              <!-- Node MLS1 -->
+              <g class="topo-node-elem" transform="translate(460, 60)">
+                <circle cx="0" cy="0" r="30" class="node-circle node-mls1-circle"/>
+                <text x="0" y="-36" class="node-title">MLS1 (3650)</text>
+                <text x="0" y="46" class="node-sub">Core Switch</text>
+              </g>
+
+              <!-- Node Server-PT -->
+              <g class="topo-node-elem" transform="translate(760, 60)">
+                <rect x="-22" y="-28" width="44" height="56" rx="6" class="node-server-rect"/>
+                <text x="0" y="-34" class="node-title">Server-PT</text>
+                <text x="0" y="44" class="node-sub">10.10.10.100/24</text>
+              </g>
+
+              <!-- Node R1 -->
+              <g class="topo-node-elem" transform="translate(200, 200)">
+                <circle cx="0" cy="0" r="32" class="node-circle node-mls1-circle"/>
+                <text x="0" y="-38" class="node-title">R1 (2911)</text>
+                <text x="0" y="48" class="node-sub">LAN IP: 172.16.1.2</text>
+              </g>
+
+              <!-- Node R2 -->
+              <g class="topo-node-elem" transform="translate(720, 200)">
+                <circle cx="0" cy="0" r="32" class="node-circle node-mls2-circle"/>
+                <text x="0" y="-38" class="node-title">R2 (2911)</text>
+                <text x="0" y="48" class="node-sub">LAN IP: 172.16.1.3</text>
+              </g>
+
+              <!-- Node S1 -->
+              <g class="topo-node-elem" transform="translate(460, 355)">
+                <rect x="-32" y="-16" width="64" height="32" rx="5" class="node-l2-rect"/>
+                <text x="0" y="-22" class="node-title">S1 (2960)</text>
+                <text x="0" y="28" class="node-sub">LAN Switch</text>
+              </g>
+
+              <!-- Node PC1 -->
+              <g class="topo-node-elem" transform="translate(320, 475)">
+                <rect x="-24" y="-16" width="48" height="32" rx="4" class="node-pc-rect"/>
+                <text x="0" y="-22" class="node-title">PC1</text>
+                <text x="0" y="32" class="node-sub">172.16.1.100</text>
+              </g>
+
+              <!-- Node PC2 -->
+              <g class="topo-node-elem" transform="translate(600, 475)">
+                <rect x="-24" y="-16" width="48" height="32" rx="4" class="node-pc-rect"/>
+                <text x="0" y="-22" class="node-title">PC2</text>
+                <text x="0" y="32" class="node-sub">172.16.1.200</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 5: SNABBGUIDE & PROVFUSK ==================== -->
+    <section id="tab-theory" class="tab-pane" role="tabpanel">
+      <div class="pane-header">
+        <div class="pane-title-wrap">
+          <div class="pane-icon">📖</div>
+          <div>
+            <h2>Snabbguide & Provfusk (Allt från anteckningarna)</h2>
+            <p>Strukturerad sammanfattning av alla begrepp och värden som uttryckligen markerats med "KOMMER PÅ PROV".</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="theory-grid">
+        <!-- Card: Tre FHRP-protokoll -->
+        <div class="theory-card card highlight-border">
+          <div class="card-badge-header">
+            <span class="badge badge-hot">⭐ VIKTIGAST TILL PROV</span>
+            <h3>Tre vanliga FHRP-protokoll</h3>
+          </div>
+          <p>FHRP står för <strong>First Hop Redundancy Protocols</strong> och används för redundans av default gateway.</p>
+          <div class="table-responsive">
+            <table class="theory-table">
+              <thead>
+                <tr>
+                  <th>Protokoll</th>
+                  <th>Typ</th>
+                  <th>Roller</th>
+                  <th>Lastdelning</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>HSRP</strong></td>
+                  <td><span class="tag-cisco">Cisco</span></td>
+                  <td><strong>Active</strong> och <strong>Standby</strong></td>
+                  <td>En router per grupp</td>
+                </tr>
+                <tr>
+                  <td><strong>VRRP</strong></td>
+                  <td><span class="tag-open">Öppen standard</span></td>
+                  <td><strong>Active / Master</strong> och <strong>Backup</strong></td>
+                  <td>En router per grupp</td>
+                </tr>
+                <tr>
+                  <td><strong>GLBP</strong></td>
+                  <td><span class="tag-cisco">Cisco</span></td>
+                  <td><strong>AVG</strong> och <strong>AVF</strong></td>
+                  <td><strong>Flera routrar</strong> kan vidarebefordra samtidigt (Lastdelning!)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Card: HSRP Nyckelvärden -->
+        <div class="theory-card card">
+          <div class="card-badge-header">
+            <span class="badge badge-hot">KOMMER PÅ PROV</span>
+            <h3>HSRP Nyckeldata & Värden</h3>
+          </div>
+          <ul class="fact-list">
+            <li>
+              <strong>UDP-port:</strong> <code class="code-inline">1985</code>
+            </li>
+            <li>
+              <strong>Virtuell MAC-adress (HSRPv2, grupp 1):</strong>
+              <code class="code-inline">0000.0c9f.f001</code>
+              <br><small class="text-muted">(För grupp 10 blir det 0000.0c9f.f00a i hex!)</small>
+            </li>
+            <li>
+              <strong>Standardprioritet (Default priority):</strong> <code class="code-inline">100</code>
+            </li>
+            <li>
+              <strong>Högsta prioritet vinner:</strong> Routern med högst prioritet blir <strong>Active</strong>.
+            </li>
+            <li>
+              <strong>Preemption:</strong> <code class="code-inline">standby &lt;grupp&gt; preempt</code>.
+              Gör att en router med högre prioritet kan <em>ta över</em> rollen som Active om den startar om eller återkommer.
+            </li>
+          </ul>
+        </div>
+
+        <!-- Card: HSRP 6 Tillstånd -->
+        <div class="theory-card card">
+          <div class="card-badge-header">
+            <span class="badge badge-accent">6 TILLSTÅND</span>
+            <h3>HSRP:s 6 Tillstånd (I ordning)</h3>
+          </div>
+          <div class="states-flow">
+            <div class="state-step"><span class="step-num">1</span><strong>Initial</strong><span class="step-desc">Starttillstånd, gränssnittet kommer upp</span></div>
+            <div class="state-arrow">➔</div>
+            <div class="state-step"><span class="step-num">2</span><strong>Learn</strong><span class="step-desc">Väntar på virtuell IP från Active</span></div>
+            <div class="state-arrow">➔</div>
+            <div class="state-step"><span class="step-num">3</span><strong>Listen</strong><span class="step-desc">Lyssnar på hellomeddelanden</span></div>
+            <div class="state-arrow">➔</div>
+            <div class="state-step"><span class="step-num">4</span><strong>Speak</strong><span class="step-desc">Skickar periodiska hellomeddelanden</span></div>
+            <div class="state-arrow">➔</div>
+            <div class="state-step"><span class="step-num">5</span><strong>Standby</strong><span class="step-desc">Kandidat att bli Active</span></div>
+            <div class="state-arrow">➔</div>
+            <div class="state-step final-active"><span class="step-num">6</span><strong>Active</strong><span class="step-desc">Vidarebefordrar trafiken aktivt</span></div>
+          </div>
+        </div>
+
+        <!-- Card: VRRP & GLBP detaljer -->
+        <div class="theory-card card">
+          <div class="card-badge-header">
+            <span class="badge badge-hot">KOMMER PÅ PROV</span>
+            <h3>VRRP & GLBP Detaljregler</h3>
+          </div>
+          <div class="rules-block">
+            <h4>VRRP (Öppen standard):</h4>
+            <ul>
+              <li>Roller: <strong>Active/Master</strong> och övriga <strong>Backup</strong>.</li>
+              <li>Standardprioritet: <strong>100</strong>.</li>
+              <li><strong>Adressägaren (IP owner):</strong> Använder prioritet <strong>255</strong>!</li>
+            </ul>
+
+            <h4 style="margin-top: 1rem;">GLBP (Gateway Load Balancing Protocol):</h4>
+            <ul>
+              <li><strong>AVG (Active Virtual Gateway):</strong> Svarar på klienternas <strong>ARP-förfrågningar</strong>!</li>
+              <li><strong>AVF (Active Virtual Forwarder):</strong> En eller flera routrar som faktiskt vidarebefordrar data.</li>
+              <li><strong>Round-robin:</strong> Standardmetoden för att dela ut MAC-adresser i turordning så trafiken balanseras.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Card: Arkitektur & Gateway-regel -->
+        <div class="theory-card card full-width">
+          <div class="card-badge-header">
+            <span class="badge badge-accent">GRUNDREGEL</span>
+            <h3>Adressplan & Default Gateway Princip</h3>
+          </div>
+          <div class="golden-rule-box">
+            <div class="rule-icon">🛡️</div>
+            <div>
+              <h4>Klienten använder ALDRIG en fysisk SVI-adress som gateway!</h4>
+              <p>
+                I exemplet har MLS1 SVI-adressen <code class="code-inline">192.168.10.2</code> och MLS2 har <code class="code-inline">192.168.10.3</code>.
+                Klienten konfigureras med den <strong>virtuella IP-adressen 192.168.10.1</strong>.
+                Den virtuella IP-adressen flyttas automatiskt mellan MLS1 och MLS2 utan att klienten behöver ändra sin gateway eller rensa sin ARP-tabell.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <div class="footer-left">
+        <span>HSRP & FHRP Provplugg • Skapad för högsta provbetyg</span>
+      </div>
+      <div class="footer-right">
+        <span class="badge badge-outline">Cisco CCNA / Enterprise Redundancy</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
