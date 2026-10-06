@@ -74,7 +74,7 @@
         <button class="nav-tab active" data-tab="tab-quiz" role="tab" id="tabBtn-quiz">
           <span class="tab-icon">🎯</span>
           <span class="tab-text">Slumpade Kryssfrågor</span>
-          <span class="tab-badge" id="quizCountBadge">25+</span>
+          <span class="tab-badge" id="quizCountBadge">50+</span>
         </button>
         <button class="nav-tab" data-tab="tab-diginto" role="tab" id="tabBtn-diginto">
           <span class="tab-icon">🌐</span>
@@ -125,10 +125,11 @@
           </button>
           <div class="filter-dropdown-wrap">
             <select id="quizCategoryFilter" class="custom-select">
-              <option value="all">Alla kategorier (Alla provfrågor)</option>
-              <option value="fhrp-intro">FHRP & Protokolljämförelse</option>
-              <option value="hsrp-core">HSRP Detaljer & MAC/Port/Prioritet</option>
-              <option value="hsrp-states">HSRP:s 6 Tillstånd</option>
+              <option value="all">Alla kategorier (Alla 52 provfrågor)</option>
+              <option value="fhrp-intro">FHRP & Protokolljämförelse (SPOF, First Hop)</option>
+              <option value="hsrp-core">HSRP Detaljer, Port, Versioner & Timers</option>
+              <option value="mac-calc">MAC-beräkning (Hex), ARP & Windows</option>
+              <option value="hsrp-states">HSRP:s 6 Tillstånd (States)</option>
               <option value="vrrp-glbp">VRRP & GLBP Detaljer</option>
               <option value="topology-cli">Topologi, SVI & Konfigurationskommandon</option>
             </select>
@@ -328,6 +329,7 @@
         <button class="cmd-cat-chip" data-cat="track-timers">Tracking & Timers</button>
         <button class="cmd-cat-chip" data-cat="auth">Autentisering</button>
         <button class="cmd-cat-chip" data-cat="show">Show & Debug</button>
+        <button class="cmd-cat-chip" data-cat="prov-labb">Grupp 150 Provlabb & ARP</button>
       </div>
 
       <!-- Mode 1: Interactive Terminal Trainer -->
@@ -833,133 +835,224 @@ interface g1/0/2
       </div>
 
       <div class="theory-grid">
-        <!-- Card: Tre FHRP-protokoll -->
+        <!-- Card 1: SPOF & Redundans -->
+        <div class="theory-card card highlight-border">
+          <div class="card-badge-header">
+            <span class="badge badge-hot">⭐ KOMMER PÅ PROV</span>
+            <h3>Single Point of Failure (SPOF) & Redundans</h3>
+          </div>
+          <p><strong>Vad är en Single Point of Failure (SPOF)?</strong></p>
+          <p>En SPOF är en <em>enskild komponent</em> vars fel gör att en hel tjänst eller en del av nätverket slutar fungera.</p>
+          <ul class="fact-list" style="margin-top: 0.8rem;">
+            <li><strong>Ensam gateway är en SPOF:</strong> Ett nätverk kan ha redundanta switchar och länkar på Layer 2, men om det bara finns en enda router konfigurerad som default gateway mot externa nät utgör den en SPOF. Fallerar den tappar alla klienter omedelbart extern anslutning!</li>
+            <li><strong>Räcker extra utrustning?</strong> Nej! Att enbart installera extra fysisk hårdvara räcker inte för full redundans.</li>
+            <li><strong>L2 vs L3 redundansprotokoll:</strong> På Layer 2 krävs protokoll som <strong>RSTP</strong> för att blockera loopar och öppna reservlänkar. På Layer 3 (IP-nivå) krävs ett <strong>FHRP-protokoll</strong> så att en reservrouter omedelbart kan ta över rollen som standard-gateway.</li>
+          </ul>
+        </div>
+
+        <!-- Card 2: Det första hoppet -->
+        <div class="theory-card card">
+          <div class="card-badge-header">
+            <span class="badge badge-accent">GRUNDBEGREPP</span>
+            <h3>Vad menas med "Det Första Hoppet" (First Hop)?</h3>
+          </div>
+          <p><strong>Definition:</strong> Den allra första <strong>Layer 3-enheten</strong> (en router eller en L3-switch) som ett IP-paket passerar på sin väg utanför det lokala nätverket.</p>
+          <ul class="fact-list" style="margin-top: 0.8rem;">
+            <li>För en klientdator eller server är detta hoppet till dess konfigurerade <strong>default gateway</strong>.</li>
+            <li><strong>En vanlig L2-switch är INTE första hoppet</strong>, eftersom den arbetar på datalänklagret (Layer 2) och enbart förmedlar ramar baserat på MAC-adresser.</li>
+            <li><strong>Problemet med statisk gateway:</strong> Om en klient är statiskt inställd på en specifik routers IP blir den helt bunden till den enheten. Klienten kan <em>inte på egen hand växla över</em> till en annan router om den primära slutar fungera!</li>
+          </ul>
+        </div>
+
+        <!-- Card 3: Tre FHRP-protokoll -->
         <div class="theory-card card highlight-border">
           <div class="card-badge-header">
             <span class="badge badge-hot">⭐ VIKTIGAST TILL PROV</span>
             <h3>Tre vanliga FHRP-protokoll</h3>
           </div>
-          <p>FHRP står för <strong>First Hop Redundancy Protocols</strong> och används för redundans av default gateway.</p>
+          <p>FHRP står för <strong>First Hop Redundancy Protocols</strong> och skapar en gemensam virtuell gateway.</p>
           <div class="table-responsive">
             <table class="theory-table">
               <thead>
                 <tr>
                   <th>Protokoll</th>
-                  <th>Typ</th>
+                  <th>Typ & Transport</th>
                   <th>Roller</th>
-                  <th>Lastdelning</th>
+                  <th>Lastbalansering</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td><strong>HSRP</strong></td>
-                  <td><span class="tag-cisco">Cisco</span></td>
-                  <td><strong>Active</strong> och <strong>Standby</strong></td>
-                  <td>En router per grupp</td>
+                  <td><span class="tag-cisco">Cisco</span> • UDP port <strong>1985</strong></td>
+                  <td><strong>Active</strong> och <strong>Standby</strong> (samt Listen, Speak, Learn, Initial)</td>
+                  <td>En aktiv router per grupp</td>
                 </tr>
                 <tr>
                   <td><strong>VRRP</strong></td>
-                  <td><span class="tag-open">Öppen standard</span></td>
+                  <td><span class="tag-open">Öppen standard</span> • IP-protokoll <strong>112</strong></td>
                   <td><strong>Active / Master</strong> och <strong>Backup</strong></td>
-                  <td>En router per grupp</td>
+                  <td>En aktiv router per grupp</td>
                 </tr>
                 <tr>
                   <td><strong>GLBP</strong></td>
-                  <td><span class="tag-cisco">Cisco</span></td>
+                  <td><span class="tag-cisco">Cisco</span> • UDP port <strong>3222</strong></td>
                   <td><strong>AVG</strong> och <strong>AVF</strong></td>
-                  <td><strong>Flera routrar</strong> kan vidarebefordra samtidigt (Lastdelning!)</td>
+                  <td><strong>Äkta lastbalansering:</strong> Flera routrar vidarebefordrar samtidigt!</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
 
-        <!-- Card: HSRP Nyckelvärden -->
+        <!-- Card 4: Virtuell MAC Beräkning (Hex) -->
         <div class="theory-card card">
           <div class="card-badge-header">
-            <span class="badge badge-hot">KOMMER PÅ PROV</span>
-            <h3>HSRP Nyckeldata & Värden</h3>
+            <span class="badge badge-hot">⭐ RÄKNA PÅ PROV</span>
+            <h3>Virtuell MAC-adress & Hex-beräkning</h3>
           </div>
+          <p>HSRP genererar en virtuell MAC-adress automatiskt utifrån gruppnumret uttryckt i hexadecimal form:</p>
           <ul class="fact-list">
-            <li>
-              <strong>UDP-port:</strong> <code class="code-inline">1985</code>
-            </li>
-            <li>
-              <strong>Virtuell MAC-adress (HSRPv2, grupp 1):</strong>
-              <code class="code-inline">0000.0c9f.f001</code>
-              <br><small class="text-muted">(För grupp 10 blir det 0000.0c9f.f00a i hex!)</small>
-            </li>
-            <li>
-              <strong>Standardprioritet (Default priority):</strong> <code class="code-inline">100</code>
-            </li>
-            <li>
-              <strong>Högsta prioritet vinner:</strong> Routern med högst prioritet blir <strong>Active</strong>.
-            </li>
-            <li>
-              <strong>Preemption:</strong> <code class="code-inline">standby &lt;grupp&gt; preempt</code>.
-              Gör att en router med högre prioritet kan <em>ta över</em> rollen som Active om den startar om eller återkommer.
-            </li>
+            <li><strong>HSRPv1 format:</strong> <code class="code-inline">0000.0c07.acXX</code> (XX = gruppnummer i hex)</li>
+            <li><strong>HSRPv2 IPv4 format:</strong> <code class="code-inline">0000.0c9f.fXXX</code> (XXX = gruppnummer i hex)</li>
+            <li><strong>Grupp 10 (0A):</strong> 10 i hex är 0A ➔ HSRPv1: <code class="code-inline">0000.0c07.ac0a</code> | HSRPv2: <code class="code-inline">0000.0c9f.f00a</code></li>
+            <li><strong>Grupp 150 (96):</strong> 150/16 = 9 rest 6 ➔ HSRPv1: <code class="code-inline">0000.0c07.AC96</code></li>
+            <li><strong>Grupp 255 (FF):</strong> 255/16 = 15 rest 15 (F och F) ➔ HSRPv1: <code class="code-inline">0000.0C07.ACFF</code></li>
+            <li><strong>Viktig regel:</strong> Den virtuella MAC-adressen är <strong>densamma även när reservroutern tar över i Active</strong>! Klienterna slipper därmed uppdatera sin ARP-tabell.</li>
           </ul>
         </div>
 
-        <!-- Card: HSRP 6 Tillstånd -->
+        <!-- Card 5: ARP & Hur klienten når gateway -->
         <div class="theory-card card">
           <div class="card-badge-header">
-            <span class="badge badge-accent">6 TILLSTÅND</span>
-            <h3>HSRP:s 6 Tillstånd (I ordning)</h3>
+            <span class="badge badge-accent">ARP FLÖDE & WINDOWS</span>
+            <h3>Hur når klienten sin gateway? ARP & 'arp -a'</h3>
           </div>
-          <div class="states-flow">
-            <div class="state-step"><span class="step-num">1</span><strong>Initial</strong><span class="step-desc">Starttillstånd, gränssnittet kommer upp</span></div>
-            <div class="state-arrow">➔</div>
-            <div class="state-step"><span class="step-num">2</span><strong>Learn</strong><span class="step-desc">Väntar på virtuell IP från Active</span></div>
-            <div class="state-arrow">➔</div>
-            <div class="state-step"><span class="step-num">3</span><strong>Listen</strong><span class="step-desc">Lyssnar på hellomeddelanden</span></div>
-            <div class="state-arrow">➔</div>
-            <div class="state-step"><span class="step-num">4</span><strong>Speak</strong><span class="step-desc">Skickar periodiska hellomeddelanden</span></div>
-            <div class="state-arrow">➔</div>
-            <div class="state-step"><span class="step-num">5</span><strong>Standby</strong><span class="step-desc">Kandidat att bli Active</span></div>
-            <div class="state-arrow">➔</div>
-            <div class="state-step final-active"><span class="step-num">6</span><strong>Active</strong><span class="step-desc">Vidarebefordrar trafiken aktivt</span></div>
-          </div>
+          <ol class="fact-list" style="padding-left: 1.2rem;">
+            <li>Klienten ser att målet finns utanför det egna subnätet.</li>
+            <li>Med <strong>ARP</strong> frågar klienten efter MAC-adressen för default gatewayens VIP (t.ex. 192.168.1.1).</li>
+            <li><strong>Endast den aktiva routern svarar</strong> med HSRP-gruppens virtuella MAC-adress (Standby ignorerar förfrågan).</li>
+            <li>Klienten skickar Ethernet-ramen adresserad till den <strong>virtuella MAC-adressen</strong>.</li>
+            <li>Paketets destinations-IP är <em>fortfarande den slutliga externa mottagaren</em>. Den aktiva routern använder sin routingtabell för att vidarebefordra paketet.</li>
+            <li>I Windows kommandotolk körs <code class="code-inline">arp -a</code>: visar gatewayens VIP bunden till virtuell MAC som typ <strong>dynamic</strong>.</li>
+          </ol>
         </div>
 
-        <!-- Card: VRRP & GLBP detaljer -->
+        <!-- Card 6: HSRPv1 vs HSRPv2 Full jämförelse -->
         <div class="theory-card card">
           <div class="card-badge-header">
             <span class="badge badge-hot">KOMMER PÅ PROV</span>
-            <h3>VRRP & GLBP Detaljregler</h3>
+            <h3>HSRP Version 1 kontra Version 2</h3>
           </div>
-          <div class="rules-block">
-            <h4>VRRP (Öppen standard):</h4>
-            <ul>
-              <li>Roller: <strong>Active/Master</strong> och övriga <strong>Backup</strong>.</li>
-              <li>Standardprioritet: <strong>100</strong>.</li>
-              <li><strong>Adressägaren (IP owner):</strong> Använder prioritet <strong>255</strong>!</li>
-            </ul>
-
-            <h4 style="margin-top: 1rem;">GLBP (Gateway Load Balancing Protocol):</h4>
-            <ul>
-              <li><strong>AVG (Active Virtual Gateway):</strong> Svarar på klienternas <strong>ARP-förfrågningar</strong>!</li>
-              <li><strong>AVF (Active Virtual Forwarder):</strong> En eller flera routrar som faktiskt vidarebefordrar data.</li>
-              <li><strong>Round-robin:</strong> Standardmetoden för att dela ut MAC-adresser i turordning så trafiken balanseras.</li>
-            </ul>
+          <div class="table-responsive">
+            <table class="theory-table">
+              <thead>
+                <tr>
+                  <th>Egenskap</th>
+                  <th>HSRPv1 (Version 1)</th>
+                  <th>HSRPv2 (Version 2)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Gruppintervall</strong></td>
+                  <td>Grupp 0 – 255</td>
+                  <td><strong>Grupp 0 – 4095</strong> (täcker hela VLAN-intervallet!)</td>
+                </tr>
+                <tr>
+                  <td><strong>Multicast IPv4</strong></td>
+                  <td><code class="code-inline">224.0.0.2</code></td>
+                  <td><code class="code-inline">224.0.0.102</code></td>
+                </tr>
+                <tr>
+                  <td><strong>Virtuell MAC (IPv4)</strong></td>
+                  <td><code class="code-inline">0000.0c07.acXX</code></td>
+                  <td><code class="code-inline">0000.0c9f.fXXX</code></td>
+                </tr>
+                <tr>
+                  <td><strong>Timers</strong></td>
+                  <td>Sekunder</td>
+                  <td>Inbyggt stöd för <strong>millisekunder (msec)</strong></td>
+                </tr>
+                <tr>
+                  <td><strong>IPv6-redundans</strong></td>
+                  <td>Stöds ej</td>
+                  <td>Multicast <code class="code-inline">FF02::66</code> och UDP <strong>2029</strong></td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
-        <!-- Card: Arkitektur & Gateway-regel -->
+        <!-- Card 7: HSRP 6 Tillstånd -->
         <div class="theory-card card full-width">
           <div class="card-badge-header">
-            <span class="badge badge-accent">GRUNDREGEL</span>
-            <h3>Adressplan & Default Gateway Princip</h3>
+            <span class="badge badge-accent">6 TILLSTÅND</span>
+            <h3>HSRP:s 6 Tillstånd (States i exakt ordning)</h3>
+          </div>
+          <div class="states-flow">
+            <div class="state-step"><span class="step-num">1</span><strong>Initial</strong><span class="step-desc">Startläge, HSRP ej startat eller interfacet precis uppe</span></div>
+            <div class="state-arrow">➔</div>
+            <div class="state-step"><span class="step-num">2</span><strong>Learn</strong><span class="step-desc">Väntar på hello från Active för att lära sig virtuell IP</span></div>
+            <div class="state-arrow">➔</div>
+            <div class="state-step"><span class="step-num">3</span><strong>Listen</strong><span class="step-desc">Känner till VIP, varken Active/Standby, lyssnar passivt</span></div>
+            <div class="state-arrow">➔</div>
+            <div class="state-step"><span class="step-num">4</span><strong>Speak</strong><span class="step-desc">Skickar aktiva hello-paket och deltar i valprocessen</span></div>
+            <div class="state-arrow">➔</div>
+            <div class="state-step"><span class="step-num">5</span><strong>Standby</strong><span class="step-desc">Vald till reserv, övervakar kontinuerligt den aktiva</span></div>
+            <div class="state-arrow">➔</div>
+            <div class="state-step final-active"><span class="step-num">6</span><strong>Active</strong><span class="step-desc">Ledarroll: vidarebefordrar trafik till virtuell IP</span></div>
+          </div>
+        </div>
+
+        <!-- Card 8: Prioritet & Tie-breaker & Omstart -->
+        <div class="theory-card card">
+          <div class="card-badge-header">
+            <span class="badge badge-hot">KOMMER PÅ PROV</span>
+            <h3>Prioritet, Tie-breaker & Vad händer vid omstart?</h3>
+          </div>
+          <ul class="fact-list">
+            <li><strong>Intervall & Standard:</strong> Konfigureras mellan 0 och 255. Standardvärdet är <strong>100</strong>.</li>
+            <li><strong>Högst prioritet vinner:</strong> Interfacet med högst prioritet blir <strong>Active</strong>.</li>
+            <li><strong>Tie-breaker vid samma prioritet:</strong> Den enhet som har <strong>högsta fysiska IP-adress</strong> på interfacet blir Active! (T.ex. R1 10.1.1.2 vs R2 10.1.1.3 ➔ R2 blir Active).</li>
+            <li><strong>Vad händer när tidigare Active startar om?</strong> Den tar <strong>INTE</strong> tillbaka Active automatiskt, även om den har högre prioritet!</li>
+            <li><strong>Lösning:</strong> Med kommandot <code class="code-inline">standby &lt;grupp&gt; preempt</code> aktiverat på routern med högre prioritet kan den preemptera och återta rollen som Active.</li>
+          </ul>
+        </div>
+
+        <!-- Card 9: Timers & 3x-regeln -->
+        <div class="theory-card card">
+          <div class="card-badge-header">
+            <span class="badge badge-hot">⭐ RÄKNA PÅ PROV</span>
+            <h3>HSRP Timers & 3x Beräkningsregeln</h3>
+          </div>
+          <ul class="fact-list">
+            <li><strong>Hello-timer normalt:</strong> <strong>3 sekunder</strong> (routern skickar meddelande som visar att den lever).</li>
+            <li><strong>Hold-timer normalt:</strong> <strong>10 sekunder</strong> (om standby inte får hello under denna tid tar den över).</li>
+            <li><strong>3x Beräkningsformeln:</strong> Hold-timern bör vara <strong>minst tre gånger Hello-timern</strong> (t.ex. 3 × 3 + 1 ≈ 10 sekunder).</li>
+            <li><strong>Varför?</strong> Det minskar risken för onödiga rollbyten (flapping) vid hög CPU-belastning eller tillfälligt förlorade paket.</li>
+            <li><strong>Snabbare övertagande:</strong> Konfigurera t.ex. Hello 1 sekund och Hold 3 sekunder (<code class="code-inline">standby 150 timers 1 3</code>). För sub-sekund krävs millisekunder (<code class="code-inline">msec</code>).</li>
+          </ul>
+        </div>
+
+        <!-- Card 10: Interface Tracking mot Black Holes -->
+        <div class="theory-card card full-width">
+          <div class="card-badge-header">
+            <span class="badge badge-hot">⭐ KOMMER PÅ PROV</span>
+            <h3>Interface Tracking – Skydd mot brutna uplinks (Black Holes)</h3>
           </div>
           <div class="golden-rule-box">
             <div class="rule-icon">🛡️</div>
             <div>
-              <h4>Klienten använder ALDRIG en fysisk SVI-adress som gateway!</h4>
+              <h4>Vad gör Interface Tracking och varför behövs det?</h4>
               <p>
-                I exemplet har MLS1 SVI-adressen <code class="code-inline">192.168.10.2</code> och MLS2 har <code class="code-inline">192.168.10.3</code>.
-                Klienten konfigureras med den <strong>virtuella IP-adressen 192.168.10.1</strong>.
-                Den virtuella IP-adressen flyttas automatiskt mellan MLS1 och MLS2 utan att klienten behöver ändra sin gateway eller rensa sin ARP-tabell.
+                Om routerns uplink mot internetleverantören dör, men routern fortfarande skickar HSRP Hellos på LAN-sidan, vet inte standby-routern att uplänken är död. Klienternas trafik dirigeras då in i en blindgång – ett <strong>black hole</strong>!
+              </p>
+              <p style="margin-top: 0.5rem;">
+                Genom att konfigurera <code class="code-inline">standby &lt;grupp&gt; track &lt;interface&gt; [avdrag]</code> (t.ex. <code class="code-inline">standby 150 track g0/0 20</code>) instrueras HSRP-processen att kontinuerligt övervaka uplänken. Går porten ner <strong>sänks routerns prioritet automatiskt</strong> med avdraget. Reservroutern (med <code class="code-inline">preempt</code>) tar då omedelbart över som Active och trafiken leds ut en fungerande väg!
+              </p>
+              <p style="margin-top: 0.5rem; font-size: 0.88rem; color: var(--text-muted);">
+                <em>Obs från provet:</em> Grundläggande interface tracking upptäcker bara om det lokala interfacet går ner. Ett fel längre bort i operatörens nätverk kräver annan övervakning (t.ex. IP SLA object tracking).
               </p>
             </div>
           </div>
