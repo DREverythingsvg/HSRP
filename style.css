@@ -1635,10 +1635,15 @@ body {
   font-family: var(--font-mono);
   font-size: 0.88rem;
   font-weight: 700;
-  color: var(--accent-light);
+  color: #38bdf8;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.guided-step-title strong {
+  color: #38bdf8;
+  text-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
 }
 
 .guided-step-actions {
@@ -1660,8 +1665,8 @@ body {
 }
 
 .step-action-btn:hover {
-  background: rgba(255, 42, 95, 0.2);
-  border-color: var(--accent-light);
+  background: rgba(56, 189, 248, 0.18);
+  border-color: #38bdf8;
   color: #fff;
 }
 
@@ -1669,8 +1674,9 @@ body {
   font-size: 0.74rem;
   padding: 0.2rem 0.55rem;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--text-secondary);
+  background: rgba(56, 189, 248, 0.12);
+  color: #7dd3fc;
+  border: 1px solid rgba(56, 189, 248, 0.3);
   font-family: var(--font-mono);
 }
 
