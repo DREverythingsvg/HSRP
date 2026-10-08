@@ -449,11 +449,10 @@
               <span class="badge badge-accent" id="cfgRoleBadge">HSRP Active</span>
             </div>
             
-            <!-- Dynamic Mini Diagram with highlighted ports -->
-            <div class="mini-diagram-container" id="miniDiagramWrap">
-              <svg viewBox="0 0 540 280" class="mini-topo-svg" id="miniTopoSvg">
-                <!-- SVG dynamically drawn in JS for selected device -->
-              </svg>
+            <!-- Topology Diagram from Packet Tracer with click to enlarge -->
+            <div class="mini-diagram-container" id="miniDiagramWrap" title="Klicka för att se fullstor topologi">
+              <img id="topoImageDisplay" src="labb6_topologi.png" alt="Labb Topologi" class="mini-topo-img">
+              <div class="topo-zoom-badge">🔍 Klicka för att förstora</div>
             </div>
 
             <!-- Parameters Cheat List -->
@@ -1091,6 +1090,18 @@ interface g1/0/2
       </div>
     </div>
   </footer>
+
+  <!-- Lightbox Modal for Topology Image -->
+  <div class="topo-lightbox-overlay" id="topoLightboxModal" style="display: none;">
+    <div class="topo-lightbox-content">
+      <button class="topo-lightbox-close" id="topoLightboxClose" aria-label="Stäng">✕</button>
+      <h3 id="topoLightboxTitle" class="topo-lightbox-title">Labb 6: Feltolerant Nätverk (Topologi)</h3>
+      <div class="topo-lightbox-img-wrap">
+        <img id="topoLightboxImg" src="labb6_topologi.png" alt="Fullstor topologi">
+      </div>
+      <p class="topo-lightbox-caption">Tryck <strong>Esc</strong> eller klicka utanför bilden för att stänga.</p>
+    </div>
+  </div>
 
   <script src="app.js?v=2.1"></script>
 </body>

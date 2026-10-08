@@ -3531,6 +3531,41 @@ function initConfigWorkspace() {
     });
   }
 
+  // Mini diagram lightbox zoom
+  const diagramWrap = document.getElementById("miniDiagramWrap");
+  const lightboxModal = document.getElementById("topoLightboxModal");
+  const lightboxClose = document.getElementById("topoLightboxClose");
+  const lightboxImg = document.getElementById("topoLightboxImg");
+  const lightboxTitle = document.getElementById("topoLightboxTitle");
+
+  if (diagramWrap && lightboxModal) {
+    diagramWrap.addEventListener("click", () => {
+      sfx.playClick();
+      const isLabb6 = state.config.currentLab === "labb6";
+      if (lightboxImg) lightboxImg.src = isLabb6 ? "labb6_topologi.png" : "labb7_topologi.png";
+      if (lightboxTitle) lightboxTitle.textContent = isLabb6 ? "Labb 6: Feltolerant Nätverk (Packet Tracer Topologi)" : "Labb 7: Redundansteknik Samverkan (Packet Tracer Topologi)";
+      lightboxModal.style.display = "flex";
+    });
+
+    if (lightboxClose) {
+      lightboxClose.addEventListener("click", () => {
+        lightboxModal.style.display = "none";
+      });
+    }
+
+    lightboxModal.addEventListener("click", (e) => {
+      if (e.target === lightboxModal) {
+        lightboxModal.style.display = "none";
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && lightboxModal.style.display === "flex") {
+        lightboxModal.style.display = "none";
+      }
+    });
+  }
+
   // Initial population
   renderDevicePillSelector();
   loadDeviceConfiguration();
@@ -4023,10 +4058,16 @@ function isLooseCommandMatch(actual, expected) {
 }
 
 function renderMiniTopology(labKey, devKey) {
+  const isLabb6 = labKey === "labb6";
+  const img = document.getElementById("topoImageDisplay");
+  if (img) {
+    img.src = isLabb6 ? "labb6_topologi.png" : "labb7_topologi.png";
+    img.alt = isLabb6 ? "Labb 6 Topologi (Packet Tracer)" : "Labb 7 Topologi (Packet Tracer)";
+  }
+
   const svg = document.getElementById("miniTopoSvg");
   if (!svg) return;
 
-  const isLabb6 = labKey === "labb6";
   const d = (devKey || "").toLowerCase();
 
   const getStyle = (name) => {
