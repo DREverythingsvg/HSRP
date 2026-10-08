@@ -965,312 +965,275 @@ body {
   color: #fff;
 }
 
-.cmd-trainer-layout {
-  display: grid;
-  grid-template-columns: 1fr 340px;
-  gap: 1.5rem;
-}
-
-.cmd-challenge-card {
-  display: flex;
-  flex-direction: column;
-}
-
-.challenge-meta {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  margin-bottom: 1rem;
-}
-
-.cmd-counter {
-  margin-left: auto;
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-
-.cmd-goal-title {
-  font-size: 1.4rem;
-  font-weight: 800;
-  margin-bottom: 0.5rem;
-  color: #fff;
-}
-
-.cmd-goal-desc {
-  font-size: 0.95rem;
-  color: var(--text-secondary);
-  margin-bottom: 1.2rem;
-}
-
-.cmd-hint-box {
-  background: rgba(255, 179, 0, 0.12);
-  border-left: 3px solid var(--color-warning);
-  padding: 0.75rem 1rem;
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  font-size: 0.88rem;
-  color: #ffe082;
-  margin-bottom: 1.2rem;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-/* Cisco Terminal Screen */
-.cisco-terminal-screen {
-  background: #090306;
-  border: 1px solid #331320;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.9), 0 0 15px rgba(255, 42, 95, 0.1);
-  margin-bottom: 1.2rem;
-}
-
-.terminal-bar {
-  background: #190910;
-  padding: 0.55rem 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  border-bottom: 1px solid #2b0d1b;
-}
-
-.term-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-.term-dot.red { background: #ff5f56; }
-.term-dot.yellow { background: #ffbd2e; }
-.term-dot.green { background: #27c93f; }
-
-.term-title {
-  margin-left: 0.5rem;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.terminal-body {
-  padding: 1.2rem 1.4rem;
-  font-family: var(--font-mono);
-  font-size: 0.9rem;
-  line-height: 1.6;
-  min-height: 120px;
-  max-height: 220px;
-  overflow-y: auto;
-  color: #e2e8f0;
-}
-
-.term-line.output {
-  color: #718096;
-}
-
-.term-line.instruction {
-  color: #ff99ac;
-  margin: 0.5rem 0;
-}
-
-.term-line.success {
-  color: var(--color-success);
-}
-
-.term-line.error {
-  color: #ff4d6d;
-}
-
-.terminal-input-row {
-  display: flex;
-  align-items: center;
-  background: #0e0509;
-  border-top: 1px solid #260c18;
-  padding: 0.6rem 1rem;
-  gap: 0.6rem;
-}
-
-.term-prompt {
-  font-family: var(--font-mono);
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: var(--accent-neon);
-  white-space: nowrap;
-}
-
-.term-input {
-  flex-grow: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  font-family: var(--font-mono);
-  font-size: 0.95rem;
-  color: #fff;
-}
-
-.term-input::placeholder {
-  color: #4a2835;
-}
-
-.terminal-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  flex-wrap: wrap;
-}
-
-.cmd-feedback-bar {
-  margin-top: 1rem;
-  padding: 0.8rem 1rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.9rem;
-  font-weight: 600;
-  animation: fadeIn 0.25s ease;
-}
-
-.cmd-feedback-bar.correct {
-  background: rgba(0, 230, 118, 0.15);
-  border: 1px solid var(--color-success);
-  color: #80ffbd;
-}
-
-.cmd-feedback-bar.wrong {
-  background: rgba(255, 42, 95, 0.15);
-  border: 1px solid var(--accent-neon);
-  color: #ff99ac;
-}
-
-/* Command Sidebar */
-.cmd-quick-sidebar {
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-}
-
-.sidebar-title {
-  font-size: 1.1rem;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin-bottom: 0.3rem;
-  color: #fff;
-}
-
-.sidebar-sub {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  margin-bottom: 1rem;
-}
-
-.cmd-list-scrollable {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  overflow-y: auto;
-  max-height: 520px;
-  padding-right: 0.3rem;
-}
-
-.cmd-progress-stat {
-  font-family: var(--font-mono);
-  font-size: 0.88rem;
-  color: #38bdf8;
-  background: rgba(56, 189, 248, 0.1);
-  border: 1px solid rgba(56, 189, 248, 0.28);
-  padding: 0.45rem 0.9rem;
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.cmd-stat-label {
-  color: var(--text-muted);
-  font-size: 0.8rem;
-}
-
-.cmd-list-item {
-  background: rgba(20, 8, 13, 0.7);
-  border: 1px solid var(--ruby-border-subtle);
-  border-radius: var(--radius-sm);
-  padding: 0.65rem 0.85rem;
-  cursor: pointer;
-  transition: all var(--transition-fast);
+/* ==========================================================
+   TAB 2: SKRIV KOMMANDON (Card Grid Trainer matching user spec)
+   ========================================================== */
+.cmd-grid-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 0.6rem;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 1.5rem;
 }
 
-.cmd-list-item:hover {
-  background: rgba(40, 16, 26, 0.95);
-  border-color: #38bdf8;
-  transform: translateX(3px);
-}
-
-.cmd-list-item.active {
-  border-color: #38bdf8;
-  background: rgba(56, 189, 248, 0.12);
-  box-shadow: 0 0 14px rgba(56, 189, 248, 0.25);
-}
-
-.cmd-list-item.completed {
-  border-color: rgba(0, 230, 118, 0.4);
-  background: rgba(0, 230, 118, 0.08);
-}
-
-.cmd-item-left {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  flex-grow: 1;
-  min-width: 0;
-}
-
-.cmd-item-num {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  font-weight: 700;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.cmd-list-item.active .cmd-item-num {
-  background: #38bdf8;
-  color: #041019;
-}
-
-.cmd-list-item.completed .cmd-item-num {
-  background: var(--color-success);
-  color: #041019;
-}
-
-.cmd-item-title {
-  font-size: 0.82rem;
-  font-weight: 600;
+.cmd-grid-title {
+  font-size: 1.35rem;
+  font-weight: 800;
   color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.cmd-grid-sub {
+  font-size: 0.9rem;
+  color: #94a3b8;
+}
+
+.cmd-grid-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.cmd-grid-counter-badge {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #00e676;
+  background: rgba(0, 230, 118, 0.1);
+  border: 1px solid rgba(0, 230, 118, 0.35);
+  padding: 0.45rem 0.95rem;
+  border-radius: var(--radius-pill, 20px);
+}
+
+.cmd-victory-banner {
+  background: linear-gradient(135deg, rgba(0, 230, 118, 0.2), rgba(6, 78, 59, 0.4));
+  border: 1px solid #00e676;
+  color: #f1f5f9;
+  padding: 1rem 1.4rem;
+  border-radius: 10px;
+  font-size: 1.05rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 0 20px rgba(0, 230, 118, 0.25);
+  animation: fadeIn 0.3s ease;
+}
+
+/* Command Cards Grid */
+.command-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+@media (max-width: 1200px) {
+  .command-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .command-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cmd-exercise-card {
+  background: #091712;
+  border: 1px solid #14352b;
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+}
+
+.cmd-exercise-card:hover {
+  border-color: #00e676;
+  box-shadow: 0 6px 22px rgba(0, 230, 118, 0.15);
+  transform: translateY(-2px);
+}
+
+.cmd-exercise-card.correct {
+  border-color: #00e676;
+  background: rgba(0, 230, 118, 0.05);
+  box-shadow: 0 0 18px rgba(0, 230, 118, 0.2);
+}
+
+.cmd-exercise-card.wrong {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.05);
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.2);
+}
+
+.cmd-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.45rem;
+  line-height: 1.35;
+}
+
+.cmd-card-desc {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  line-height: 1.45;
+  min-height: 2.7rem;
+  margin-bottom: 0.85rem;
+}
+
+/* Terminal within Card */
+.cmd-card-cli {
+  background: #030c08;
+  border: 1px solid #103327;
+  border-radius: 8px;
+  padding: 0.75rem 0.85rem;
+  margin-bottom: 0.9rem;
+  font-family: var(--font-mono, 'Consolas', monospace);
+}
+
+.cmd-card-cli-context {
+  color: #64748b;
+  font-size: 0.8rem;
+  margin-bottom: 0.4rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.cmd-item-status {
-  font-size: 0.76rem;
-  font-family: var(--font-mono);
-  color: var(--text-muted);
-  flex-shrink: 0;
+.cmd-card-cli-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.cmd-list-item.completed .cmd-item-status {
-  color: var(--color-success);
+.cmd-card-cli-prompt {
+  font-family: var(--font-mono, 'Consolas', monospace);
+  font-size: 0.84rem;
   font-weight: 700;
+  color: #00e676;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.cmd-card-cli-input {
+  flex: 1;
+  background: rgba(0, 230, 118, 0.04);
+  border: 1px solid rgba(0, 230, 118, 0.25);
+  border-radius: 4px;
+  color: #fff;
+  font-family: var(--font-mono, 'Consolas', monospace);
+  font-size: 0.84rem;
+  padding: 0.35rem 0.6rem;
+  outline: none;
+  transition: all 0.2s ease;
+  min-width: 0;
+}
+
+.cmd-card-cli-input:focus {
+  border-color: #00e676;
+  background: rgba(0, 230, 118, 0.08);
+  box-shadow: 0 0 8px rgba(0, 230, 118, 0.3);
+}
+
+.cmd-card-cli-input::placeholder {
+  color: rgba(148, 163, 184, 0.45);
+  font-style: italic;
+  font-size: 0.8rem;
+}
+
+.cmd-exercise-card.correct .cmd-card-cli-input {
+  border-color: #00e676;
+  color: #00e676;
+  font-weight: 600;
+  background: rgba(0, 230, 118, 0.08);
+}
+
+/* Card Footer & Button */
+.cmd-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: auto;
+}
+
+.cmd-card-check-btn {
+  background: #00e676;
+  color: #03170e;
+  font-weight: 700;
+  font-size: 0.84rem;
+  padding: 0.55rem 1.15rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cmd-card-check-btn:hover {
+  background: #00c853;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 230, 118, 0.35);
+}
+
+.cmd-exercise-card.correct .cmd-card-check-btn {
+  background: #10b981;
+  color: #fff;
+  cursor: default;
+  transform: none;
+  box-shadow: none;
+}
+
+.cmd-card-feedback {
+  font-size: 0.78rem;
+  margin-top: 0.6rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 6px;
+  animation: fadeIn 0.2s ease;
+}
+
+.cmd-card-feedback.correct {
+  background: rgba(0, 230, 118, 0.12);
+  border: 1px solid rgba(0, 230, 118, 0.3);
+  color: #00e676;
+  font-weight: 600;
+}
+
+.cmd-card-feedback.wrong {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ff6b6b;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cmd-reveal-link {
+  background: none;
+  border: none;
+  color: #38bdf8;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.78rem;
+  padding: 0;
+  white-space: nowrap;
+}
+
+.cmd-reveal-link:hover {
+  color: #7dd3fc;
 }
 
 

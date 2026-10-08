@@ -82,9 +82,9 @@
           <span class="tab-badge badge-hot">Nyhet 20+</span>
         </button>
         <button class="nav-tab" data-tab="tab-commands" role="tab" id="tabBtn-commands">
-          <span class="tab-icon">⚡</span>
-          <span class="tab-text">HSRP Kommandon</span>
-          <span class="tab-badge">Cisco CLI</span>
+          <span class="tab-icon">✏️</span>
+          <span class="tab-text">Skriv Kommandon</span>
+          <span class="tab-badge" id="cmdCountBadge">15 st</span>
         </button>
         <button class="nav-tab" data-tab="tab-configs" role="tab" id="tabBtn-configs">
           <span class="tab-icon">📝</span>
@@ -303,90 +303,29 @@
       </div>
     </section>
 
-    <!-- ==================== TAB 2: TRÄNA KOMMANDON ==================== -->
+    <!-- ==================== TAB 2: SKRIV KOMMANDON ==================== -->
     <section id="tab-commands" class="tab-pane" role="tabpanel">
-      <div class="pane-header">
-        <div class="pane-title-wrap">
-          <div class="pane-icon">⚡</div>
-          <div>
-            <h2>HSRP Kommandoträning (Cisco IOS)</h2>
-            <p>Träna på att skriva de <strong>12 viktigaste HSRP-kommandona</strong> själv från minnet direkt i Cisco IOS-prompten!</p>
-          </div>
+      <!-- Section Header -->
+      <div class="cmd-grid-header">
+        <div class="cmd-grid-header-left">
+          <h2 class="cmd-grid-title">✏️ Träna på Provets Kommandon (Skriv hela kommandot)</h2>
+          <p class="cmd-grid-sub">Skriv hela Cisco-kommandot från grunden vid prompten och klicka på Kontrollera eller tryck Enter!</p>
         </div>
-        <div class="pane-controls">
-          <div class="cmd-progress-stat">
-            <span class="cmd-stat-label">Framsteg:</span>
-            <strong id="cmdMasteryCount">0 / 12 klara</strong>
-          </div>
+        <div class="cmd-grid-header-right">
+          <div class="cmd-grid-counter-badge" id="cmdGridCounter">Klart: 0 / 15</div>
+          <button id="cmdShuffleBtn" class="btn btn-outline btn-sm">🔀 Slumpa Frågor</button>
+          <button id="cmdResetBtn" class="btn btn-outline btn-sm">🔄 Kör Igen / Nollställ</button>
         </div>
       </div>
 
-      <!-- Interactive Terminal Trainer -->
-      <div id="cmdTypingView" class="cmd-view-section">
-        <div class="cmd-trainer-layout">
-          <!-- Left: Challenge Box -->
-          <div class="cmd-challenge-card card">
-            <div class="challenge-meta">
-              <span class="badge badge-accent" id="cmdTargetDevice">MLS1(config-if)#</span>
-              <span class="badge badge-hot" id="cmdDifficulty">Provkrav</span>
-              <span class="cmd-counter" id="cmdCounter">Kommando 1 av 12</span>
-            </div>
+      <!-- Victory Banner (Hidden by default) -->
+      <div id="cmdVictoryBanner" class="cmd-victory-banner" style="display: none;">
+        🎉 <strong>Fantastiskt jobbat!</strong> Du har klarat alla kommandona felfritt!
+      </div>
 
-            <h3 class="cmd-goal-title" id="cmdGoalTitle">Aktivera HSRP Version 2</h3>
-            <p class="cmd-goal-desc" id="cmdGoalDesc">
-              Laddar uppdragsbeskrivning...
-            </p>
-
-            <div class="cmd-hint-box" id="cmdHintBox" style="display: none;">
-              <span class="hint-icon">💡</span>
-              <span id="cmdHintText">Tips: Kommandot börjar med 'standby...'</span>
-            </div>
-
-            <!-- Terminal Screen -->
-            <div class="cisco-terminal-screen">
-              <div class="terminal-bar">
-                <span class="term-dot red"></span>
-                <span class="term-dot yellow"></span>
-                <span class="term-dot green"></span>
-                <span class="term-title" id="terminalTitle">Cisco IOS CLI - Switch Console</span>
-              </div>
-              <div class="terminal-body" id="terminalLog">
-                <div class="term-line output">Cisco IOS Software, C3650 Software (CAT3K_CAA-UNIVERSALK9-M), Version 16.6.4</div>
-                <div class="term-line output">Redundancy / FHRP Configuration Mode Active.</div>
-                <div class="term-line instruction">Skriv kommandot vid prompten nedan och tryck Enter:</div>
-              </div>
-              <div class="terminal-input-row">
-                <span class="term-prompt" id="termPrompt">MLS1(config-if)#</span>
-                <input type="text" id="terminalInput" class="term-input" placeholder="Skriv Cisco-kommando här..." autocomplete="off" spellcheck="false">
-                <button id="submitCmdBtn" class="btn btn-primary btn-sm">Kör ↵</button>
-              </div>
-            </div>
-
-            <!-- Terminal Action buttons -->
-            <div class="terminal-actions">
-              <button id="prevCmdBtn" class="btn btn-ghost btn-sm">⬅ Föregående</button>
-              <button id="showCmdHintBtn" class="btn btn-ghost btn-sm">💡 Visa Tips</button>
-              <button id="showCmdAnswerBtn" class="btn btn-ghost btn-sm">👁️ Visa Rätt Svar</button>
-              <button id="nextCmdBtn" class="btn btn-outline btn-sm">Nästa Kommando ➔</button>
-            </div>
-
-            <div class="cmd-feedback-bar" id="cmdFeedbackBar" style="display: none;">
-              <!-- Dynamic message -->
-            </div>
-          </div>
-
-          <!-- Right: Command Mission Checklist (NO spoilers) -->
-          <div class="cmd-quick-sidebar card">
-            <h4 class="sidebar-title">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
-              Uppdragslista (12 Kommandon)
-            </h4>
-            <p class="sidebar-sub">Skriv in kommandona själv i prompten för att bocka av dem:</p>
-            <div class="cmd-list-scrollable" id="commandQuickList">
-              <!-- Rendered via JS without showing the command syntax -->
-            </div>
-          </div>
-        </div>
+      <!-- Command Cards Grid -->
+      <div class="command-card-grid" id="commandCardsGrid">
+        <!-- Rendered dynamically by JavaScript -->
       </div>
     </section>
 
@@ -1086,6 +1025,6 @@ interface g1/0/2
     </div>
   </div>
 
-  <script src="app.js?v=2.2"></script>
+  <script src="app.js?v=2.3"></script>
 </body>
 </html>
