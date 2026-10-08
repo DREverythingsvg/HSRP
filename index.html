@@ -303,36 +303,25 @@
       </div>
     </section>
 
-    <!-- ==================== TAB 3: TRÄNA KOMMANDON ==================== -->
+    <!-- ==================== TAB 2: TRÄNA KOMMANDON ==================== -->
     <section id="tab-commands" class="tab-pane" role="tabpanel">
       <div class="pane-header">
         <div class="pane-title-wrap">
           <div class="pane-icon">⚡</div>
           <div>
             <h2>HSRP Kommandoträning (Cisco IOS)</h2>
-            <p>Träna in de viktigaste kommandona för HSRP: version, virtuell IP, prioritet, preemption, tracking, timers, autentisering och show-kommandon. Endast HSRP!</p>
+            <p>Träna på att skriva de <strong>12 viktigaste HSRP-kommandona</strong> själv från minnet direkt i Cisco IOS-prompten!</p>
           </div>
         </div>
         <div class="pane-controls">
-          <div class="mode-toggle">
-            <button class="mode-btn active" id="cmdModeTypeBtn" data-mode="typing">⌨️ Skriv i Cisco Prompt</button>
-            <button class="mode-btn" id="cmdModeCardBtn" data-mode="cards">🗂️ Flashcards & Facit</button>
+          <div class="cmd-progress-stat">
+            <span class="cmd-stat-label">Framsteg:</span>
+            <strong id="cmdMasteryCount">0 / 12 klara</strong>
           </div>
         </div>
       </div>
 
-      <!-- Command Categories Bar -->
-      <div class="command-cat-nav" id="commandCatNav">
-        <button class="cmd-cat-chip active" data-cat="all">Alla HSRP-Kommandon</button>
-        <button class="cmd-cat-chip" data-cat="hsrp-basic">Grund & Virtuell IP</button>
-        <button class="cmd-cat-chip" data-cat="prio-preempt">Prioritet & Preemption</button>
-        <button class="cmd-cat-chip" data-cat="track-timers">Tracking & Timers</button>
-        <button class="cmd-cat-chip" data-cat="auth">Autentisering</button>
-        <button class="cmd-cat-chip" data-cat="show">Show & Debug</button>
-        <button class="cmd-cat-chip" data-cat="prov-labb">Grupp 150 Provlabb & ARP</button>
-      </div>
-
-      <!-- Mode 1: Interactive Terminal Trainer -->
+      <!-- Interactive Terminal Trainer -->
       <div id="cmdTypingView" class="cmd-view-section">
         <div class="cmd-trainer-layout">
           <!-- Left: Challenge Box -->
@@ -340,12 +329,12 @@
             <div class="challenge-meta">
               <span class="badge badge-accent" id="cmdTargetDevice">MLS1(config-if)#</span>
               <span class="badge badge-hot" id="cmdDifficulty">Provkrav</span>
-              <span class="cmd-counter" id="cmdCounter">1 / 15</span>
+              <span class="cmd-counter" id="cmdCounter">Kommando 1 av 12</span>
             </div>
 
-            <h3 class="cmd-goal-title" id="cmdGoalTitle">Konfigurera HSRP version 2 på interfacenivå</h3>
+            <h3 class="cmd-goal-title" id="cmdGoalTitle">Aktivera HSRP Version 2</h3>
             <p class="cmd-goal-desc" id="cmdGoalDesc">
-              För att stödja fler grupper och IPv6 samt den nya MAC-adressen <code class="code-inline">0000.0c9f.f001</code> måste vi sätta HSRP till version 2.
+              Laddar uppdragsbeskrivning...
             </p>
 
             <div class="cmd-hint-box" id="cmdHintBox" style="display: none;">
@@ -364,7 +353,7 @@
               <div class="terminal-body" id="terminalLog">
                 <div class="term-line output">Cisco IOS Software, C3650 Software (CAT3K_CAA-UNIVERSALK9-M), Version 16.6.4</div>
                 <div class="term-line output">Redundancy / FHRP Configuration Mode Active.</div>
-                <div class="term-line instruction">Skriv rätt Cisco IOS-kommando nedan och tryck Enter:</div>
+                <div class="term-line instruction">Skriv kommandot vid prompten nedan och tryck Enter:</div>
               </div>
               <div class="terminal-input-row">
                 <span class="term-prompt" id="termPrompt">MLS1(config-if)#</span>
@@ -375,8 +364,9 @@
 
             <!-- Terminal Action buttons -->
             <div class="terminal-actions">
-              <button id="showCmdHintBtn" class="btn btn-ghost btn-sm">Visa Tips</button>
-              <button id="showCmdAnswerBtn" class="btn btn-ghost btn-sm">Visa Rätt Svar</button>
+              <button id="prevCmdBtn" class="btn btn-ghost btn-sm">⬅ Föregående</button>
+              <button id="showCmdHintBtn" class="btn btn-ghost btn-sm">💡 Visa Tips</button>
+              <button id="showCmdAnswerBtn" class="btn btn-ghost btn-sm">👁️ Visa Rätt Svar</button>
               <button id="nextCmdBtn" class="btn btn-outline btn-sm">Nästa Kommando ➔</button>
             </div>
 
@@ -385,24 +375,17 @@
             </div>
           </div>
 
-          <!-- Right: Command Quick Library -->
+          <!-- Right: Command Mission Checklist (NO spoilers) -->
           <div class="cmd-quick-sidebar card">
             <h4 class="sidebar-title">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-              Snabbväljare för övning
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+              Uppdragslista (12 Kommandon)
             </h4>
-            <p class="sidebar-sub">Klicka på ett kommando för att träna på det direkt:</p>
+            <p class="sidebar-sub">Skriv in kommandona själv i prompten för att bocka av dem:</p>
             <div class="cmd-list-scrollable" id="commandQuickList">
-              <!-- Rendered via JS -->
+              <!-- Rendered via JS without showing the command syntax -->
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Mode 2: Flashcards View -->
-      <div id="cmdCardsView" class="cmd-view-section" style="display: none;">
-        <div class="cards-grid" id="commandCardsGrid">
-          <!-- Rendered via JS -->
         </div>
       </div>
     </section>
@@ -1103,6 +1086,6 @@ interface g1/0/2
     </div>
   </div>
 
-  <script src="app.js?v=2.1"></script>
+  <script src="app.js?v=2.2"></script>
 </body>
 </html>

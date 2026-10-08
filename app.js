@@ -1181,267 +1181,129 @@ function shuffleArray(array) {
 // ==========================================
 // 3. CLI COMMANDS DATABASE (Interactive Trainer)
 // ==========================================
-// 3. CLI COMMANDS DATABASE (Pure HSRP Trainer)
+// ==========================================
+// 3. CLI COMMANDS DATABASE (De 12 viktigaste HSRP-kommandona)
 // ==========================================
 const COMMANDS_DB = [
-  // 1. HSRP Version & Grund
   {
-    id: "cmd-hsrp-v2",
-    cat: "hsrp-basic",
+    id: "cmd-v2",
     targetDevice: "MLS1(config-if)#",
-    title: "Aktivera HSRP Version 2",
-    desc: "På interface vlan 10 måste version 2 aktiveras för att stödja MAC-adresser i intervallet <code class=\"code-inline\">0000.0c9f.f000</code> till <code class=\"code-inline\">0000.0c9f.ffff</code>, IPv6 och gruppnummer upp till 4095.",
+    title: "1. Aktivera HSRP Version 2",
+    desc: "På interface vlan 10 måste version 2 aktiveras för att stödja gruppnummer upp till 4095, IPv6 och MAC-intervall <code class=\"code-inline\">0000.0c9f.f000</code> – <code class=\"code-inline\">0000.0c9f.ffff</code>.",
     hint: "standby version 2",
     canonical: "standby version 2",
-    validRegex: /^standby\s+version\s+2$/i,
-    explanation: "Aktiverar HSRP version 2 på det aktuella interfacet."
+    validRegex: /^standby\s+ver(sion)?\s+2$/i,
+    explanation: "Aktiverar HSRP version 2 på interfacet."
   },
   {
-    id: "cmd-hsrp-v1",
-    cat: "hsrp-basic",
+    id: "cmd-vip",
     targetDevice: "MLS1(config-if)#",
-    title: "Sätt HSRP Version 1 (Standard)",
-    desc: "Konfigurera eller återställ interfacet till HSRP version 1 (standardversion begränsad till grupp 0–255 och MAC 0000.0c07.acxx).",
-    hint: "standby version 1",
-    canonical: "standby version 1",
-    validRegex: /^standby\s+version\s+1$/i,
-    explanation: "Sätter interfacet i HSRP version 1-läge."
-  },
-  {
-    id: "cmd-hsrp-ip",
-    cat: "hsrp-basic",
-    targetDevice: "MLS1(config-if)#",
-    title: "Konfigurera virtuell IP-adress",
-    desc: "Skapa HSRP-grupp 10 och tilldela den virtuella IP-adressen <code class=\"code-inline\">192.168.10.1</code> som PC0 och klienterna använder som sin Default Gateway.",
-    hint: "standby [grupp] ip [ip-adress]",
+    title: "2. Konfigurera Virtuell IP-adress (VIP)",
+    desc: "Skapa HSRP-grupp 10 och tilldela den virtuella IP-adressen <code class=\"code-inline\">192.168.10.1</code> som PC-klienterna ska ha som default gateway.",
+    hint: "standby 10 ip 192.168.10.1",
     canonical: "standby 10 ip 192.168.10.1",
     validRegex: /^standby\s+10\s+ip\s+192\.168\.10\.1$/i,
-    explanation: "Skapar HSRP-grupp 10 och sätter den virtuella gateway-adressen till 192.168.10.1."
+    explanation: "Skapar HSRP-grupp 10 och sätter virtuell gateway-adress till 192.168.10.1."
   },
   {
-    id: "cmd-hsrp-name",
-    cat: "hsrp-basic",
+    id: "cmd-prio",
     targetDevice: "MLS1(config-if)#",
-    title: "Namnge HSRP-gruppen (Beskrivande namn)",
-    desc: "Tilldela HSRP-grupp 10 det logiska beskrivande namnet <code class=\"code-inline\">HSRP_VLAN10</code>.",
-    hint: "standby [grupp] name [namn]",
-    canonical: "standby 10 name HSRP_VLAN10",
-    validRegex: /^standby\s+10\s+name\s+HSRP_VLAN10$/i,
-    explanation: "Ger HSRP-gruppen ett unikt textnamn för enkel identifiering i konfigurationen."
-  },
-  // 2. Prioritet & Preemption
-  {
-    id: "cmd-hsrp-prio",
-    cat: "prio-preempt",
-    targetDevice: "MLS1(config-if)#",
-    title: "Sätt HSRP Prioritet till 105",
-    desc: "Sätt prioriteten för grupp 10 till 105 så att MLS1 vinner valet och blir primär router (Active) istället för standardvärdet 100.",
-    hint: "standby [grupp] priority [värde]",
-    canonical: "standby 10 priority 105",
-    validRegex: /^(standby\s+10\s+priority\s+105|standby\s+10\s+prio\s+105)$/i,
-    explanation: "Sätter prioritet 105 (standard är 100). Högst prioritet blir Active router."
+    title: "3. Sätt HSRP Prioritet (110)",
+    desc: "Sätt prioriteten för HSRP-grupp 10 till 110 så att denna switch vinner valet och blir primär Active router framför standarden 100.",
+    hint: "standby 10 priority 110",
+    canonical: "standby 10 priority 110",
+    validRegex: /^standby\s+10\s+pri(ority)?\s+110$/i,
+    explanation: "Sätter prioritet 110 (högsta prioritet vinner valet till Active router)."
   },
   {
-    id: "cmd-hsrp-preempt",
-    cat: "prio-preempt",
+    id: "cmd-preempt",
     targetDevice: "MLS1(config-if)#",
-    title: "Aktivera Preemption (standby preempt)",
-    desc: "Tillåt routern att ta tillbaka rollen som Active router om den startar om eller återansluts och har högre prioritet än nuvarande aktiv router.",
-    hint: "standby [grupp] preempt",
+    title: "4. Aktivera Preemption",
+    desc: "Aktivera preemption för grupp 10 så att routern automatiskt kan återta rollen som Active vid en omstart om den har högst prioritet.",
+    hint: "standby 10 preempt",
     canonical: "standby 10 preempt",
-    validRegex: /^standby\s+10\s+preempt$/i,
-    explanation: "Preemption gör att routern jämför prioritet och omedelbart tar över som Active om dess prioritet är högre."
+    validRegex: /^standby\s+10\s+pre(empt)?$/i,
+    explanation: "Tillåter routern att preemptera och omedelbart återta rollen som Active router."
   },
   {
-    id: "cmd-hsrp-preempt-delay",
-    cat: "prio-preempt",
+    id: "cmd-preempt-delay",
     targetDevice: "MLS1(config-if)#",
-    title: "Konfigurera Preempt Delay (30 sekunder)",
-    desc: "Fördröj preemption med minst 30 sekunder efter boot så att routingprotokoll (som OSPF/EIGRP) hinner konvergera innan routern tar över klienttrafiken.",
-    hint: "standby [grupp] preempt delay minimum [sekunder]",
+    title: "5. Konfigurera Preempt Delay (30 sek)",
+    desc: "Fördröj preemption med minst 30 sekunder efter boot så att routingprotokoll som OSPF/EIGRP hinner konvergera innan trafiken tas över.",
+    hint: "standby 10 preempt delay minimum 30",
     canonical: "standby 10 preempt delay minimum 30",
-    validRegex: /^(standby\s+10\s+preempt\s+delay\s+minimum\s+30|standby\s+10\s+preempt\s+delay\s+min\s+30)$/i,
-    explanation: "Fördröjer övertagandet med 30 sekunder för att undvika svart hål-trafik under routingkonvergens."
+    validRegex: /^standby\s+10\s+pre(empt)?\s+delay\s+min(imum)?\s+30$/i,
+    explanation: "Fördröjer failover med 30s för att undvika svart hål-trafik under routingkonvergens."
   },
-  // 3. Tracking & Timers
   {
-    id: "cmd-hsrp-track",
-    cat: "track-timers",
+    id: "cmd-track",
     targetDevice: "MLS1(config-if)#",
-    title: "Interface Tracking (Övervaka upplänk mot ISP)",
-    desc: "Övervaka upplänken g1/0/3 för grupp 10 så att prioriteten sänks automatiskt om länken mot ISP dör.",
-    hint: "standby [grupp] track [interface]",
-    canonical: "standby 10 track g1/0/3",
-    validRegex: /^(standby\s+10\s+track\s+(g1\/0\/3|gigabitethernet\s*1\/0\/3))(\s+10)?$/i,
-    explanation: "Interface tracking sänker HSRP-prioriteten vid länkavbrott så att standby-routern tar över."
+    title: "6. Interface Tracking mot Uplink (Avdrag 20)",
+    desc: "Övervaka uplänken gigabitEthernet 1/0/5 för grupp 10 med ett prioritetavdrag på 20 vid avbrott för att skydda mot black holes.",
+    hint: "standby 10 track gigabitEthernet 1/0/5 20",
+    canonical: "standby 10 track gigabitEthernet 1/0/5 20",
+    validRegex: /^standby\s+10\s+track\s+(g|gi|gigabitethernet)?\s*1\/0\/5\s+20$/i,
+    explanation: "Övervakar uplänken och drar av 20 i prioritet vid fel så standby-routern tar över."
   },
   {
-    id: "cmd-hsrp-track-dec",
-    cat: "track-timers",
+    id: "cmd-timers",
     targetDevice: "MLS1(config-if)#",
-    title: "Interface Tracking med specifik minskning (20)",
-    desc: "Konfigurera interface tracking för grupp 10 mot g1/0/3 med ett explicit avdrag på 20 vid avbrott.",
-    hint: "standby 10 track g1/0/3 20",
-    canonical: "standby 10 track g1/0/3 20",
-    validRegex: /^(standby\s+10\s+track\s+(g1\/0\/3|gigabitethernet\s*1\/0\/3)\s+20)$/i,
-    explanation: "Minskar routerns prioritet med exakt 20 om det övervakade interfacet går ner."
+    title: "7. Snabbare Timers (Hello 1s, Hold 3s)",
+    desc: "Justera HSRP-timers för grupp 10 till Hello 1 sekund och Hold 3 sekunder (3x-regeln) för betydligt snabbare felväxling.",
+    hint: "standby 10 timers 1 3",
+    canonical: "standby 10 timers 1 3",
+    validRegex: /^standby\s+10\s+timers\s+1\s+3$/i,
+    explanation: "Sätter Hello-timer till 1s och Hold-timer till 3s."
   },
   {
-    id: "cmd-hsrp-timers-sec",
-    cat: "track-timers",
+    id: "cmd-auth",
     targetDevice: "MLS1(config-if)#",
-    title: "Justera HSRP Timers (Sekunder: Hello 1s, Hold 4s)",
-    desc: "Sätt HSRP Hello-timer till 1 sekund och Hold-timer till 4 sekunder för snabbare felväxling (enligt Digintos rekommendation).",
-    hint: "standby [grupp] timers [hello] [hold]",
-    canonical: "standby 10 timers 1 4",
-    validRegex: /^standby\s+10\s+timers\s+1\s+4$/i,
-    explanation: "Sätter Hello-timer till 1s och Hold-timer till 4s."
+    title: "8. MD5 Kryptografisk Autentisering",
+    desc: "Säkra HSRP-grupp 10 med kryptografisk MD5-autentisering och nyckelsträngen <code class=\"code-inline\">Cisco123</code> för att stoppa spoofing.",
+    hint: "standby 10 authentication md5 key-string Cisco123",
+    canonical: "standby 10 authentication md5 key-string Cisco123",
+    validRegex: /^standby\s+10\s+auth(entication)?\s+md5\s+key-string\s+Cisco123$/i,
+    explanation: "Aktiverar säker MD5-autentisering för HSRP-gruppen."
   },
   {
-    id: "cmd-hsrp-timers-msec",
-    cat: "track-timers",
+    id: "cmd-name",
     targetDevice: "MLS1(config-if)#",
-    title: "Sub-sekunds Timers (Millisekunder)",
-    desc: "Konfigurera millisekund-timers: Hello var 200:e millisekund och Hold-timer till 750 millisekunder.",
-    hint: "standby [grupp] timers msec [hello] msec [hold]",
-    canonical: "standby 10 timers msec 200 msec 750",
-    validRegex: /^standby\s+10\s+timers\s+msec\s+200\s+msec\s+750$/i,
-    explanation: "Aktiverar sub-sekundsnivå för Hello och Hold för minimal failover-tid."
-  },
-  // 4. Autentisering & Säkerhet
-  {
-    id: "cmd-hsrp-auth-text",
-    cat: "auth",
-    targetDevice: "MLS1(config-if)#",
-    title: "Klartext Autentisering (Plain text)",
-    desc: "Säkra HSRP-grupp 10 med klartextlösenordet <code class=\"code-inline\">cisco</code> så att obehöriga enheter inte kan injicera Hello-paket.",
-    hint: "standby [grupp] authentication [lösenord]",
-    canonical: "standby 10 authentication cisco",
-    validRegex: /^standby\s+10\s+authentication\s+cisco$/i,
-    explanation: "Sätter klartextautentisering för HSRP-gruppen."
+    title: "9. Namnge HSRP-gruppen",
+    desc: "Ge HSRP-grupp 10 det beskrivande namnet <code class=\"code-inline\">HSRP_LAN</code> för tydlig dokumentation i konfigurationen.",
+    hint: "standby 10 name HSRP_LAN",
+    canonical: "standby 10 name HSRP_LAN",
+    validRegex: /^standby\s+10\s+name\s+HSRP_LAN$/i,
+    explanation: "Sätter ett beskrivande namn på HSRP-gruppen."
   },
   {
-    id: "cmd-hsrp-auth-md5",
-    cat: "auth",
-    targetDevice: "MLS1(config-if)#",
-    title: "MD5 Key-string Autentisering (Kryptografisk)",
-    desc: "Aktivera säker kryptografisk MD5-autentisering för grupp 10 med nyckelsträngen <code class=\"code-inline\">CiscoPass1</code>.",
-    hint: "standby [grupp] authentication md5 key-string [nyckel]",
-    canonical: "standby 10 authentication md5 key-string CiscoPass1",
-    validRegex: /^(standby\s+10\s+authentication\s+md5\s+key-string\s+CiscoPass1|standby\s+10\s+auth\s+md5\s+key-string\s+CiscoPass1)$/i,
-    explanation: "Skyddar HSRP-meddelanden mot avlyssning och falska Hello-paket med MD5."
-  },
-  // 5. Show & Debug (Verifiering)
-  {
-    id: "cmd-show-standby-brief",
-    cat: "show",
+    id: "cmd-show-brief",
     targetDevice: "MLS1#",
-    title: "show standby brief (Viktigaste provkommandot)",
-    desc: "Visa en snabb sammanfattningstabell över alla HSRP-grupper med kolumnerna Interface, Grp, Pri, P (Preempt), State, Active, Standby och Virtual IP.",
+    title: "10. Visa Sammanfattning (show standby brief)",
+    desc: "Kör kommandot i privileged EXEC-läge (#) för att visa en snabb översiktstabell över alla grupper, prioritet, tillstånd och VIP.",
     hint: "show standby brief",
     canonical: "show standby brief",
-    validRegex: /^(show\s+standby\s+brief|sh\s+standby\s+brief|sh\s+stand\s+br)$/i,
-    explanation: "Ciscos standardkommando för att omedelbart verifiera HSRP-tillstånd på alla grupper."
+    validRegex: /^(show|sh)\s+stand(by)?\s+br(ief)?$/i,
+    explanation: "Ciscos viktigaste verifieringskommando för en överskådlig HSRP-tabell."
   },
   {
-    id: "cmd-show-standby",
-    cat: "show",
+    id: "cmd-show-full",
     targetDevice: "MLS1#",
-    title: "show standby (Fullständig detaljerad status)",
-    desc: "Visa detaljerad HSRP-information inklusive virtuell MAC-adress, exakta timers, aktiva och standby-routrars IP, och trackingstatus.",
+    title: "11. Fullständig HSRP-status (show standby)",
+    desc: "Visa all detaljerad information om HSRP inklusive virtuell MAC-adress, exakta timers, aktiva/standby IP samt tracking.",
     hint: "show standby",
     canonical: "show standby",
-    validRegex: /^(show\s+standby|sh\s+standby)$/i,
-    explanation: "Visar fullständig detaljvy över HSRP-konfiguration och aktuell driftstatus."
+    validRegex: /^(show|sh)\s+stand(by)?$/i,
+    explanation: "Visar all detaljerad HSRP-status för interfacet."
   },
   {
-    id: "cmd-show-standby-vlan",
-    cat: "show",
+    id: "cmd-debug",
     targetDevice: "MLS1#",
-    title: "show standby vlan 10 (Specifikt interface)",
-    desc: "Filtrera och visa HSRP-information specifikt för interface VLAN 10.",
-    hint: "show standby vlan 10",
-    canonical: "show standby vlan 10",
-    validRegex: /^(show\s+standby\s+vlan\s+10|sh\s+standby\s+vlan\s+10)$/i,
-    explanation: "Visar HSRP-status specifikt för interface vlan 10."
-  },
-  {
-    id: "cmd-debug-standby",
-    cat: "show",
-    targetDevice: "MLS1#",
-    title: "debug standby events (Felsök HSRP-tillstånd)",
-    desc: "Felsök HSRP i realtid på konsolen genom att övervaka tillståndsbyten (Speak, Standby, Active) och valprocessen.",
+    title: "12. Felsök HSRP i Realtid (debug standby events)",
+    desc: "Aktivera felsökningsutskrifter på konsolen för att övervaka HSRP-händelser och tillståndsbyten (Listen, Speak, Standby, Active) i realtid.",
     hint: "debug standby events",
     canonical: "debug standby events",
-    validRegex: /^(debug\s+standby\s+events|deb\s+standby\s+events)$/i,
-    explanation: "Loggar HSRP-händelser och tillståndsförändringar i realtid."
-  },
-  // 6. Prov-labb (Grupp 150 & ARP från nya anteckningarna)
-  {
-    id: "cmd-hsrp-150-ip",
-    cat: "prov-labb",
-    targetDevice: "R1(config-if)#",
-    title: "Konfigurera Grupp 150 Virtuell IP (Provfråga)",
-    desc: "På interface g0/1, konfigurera HSRP-grupp 150 med den virtuella IP-adressen <code class=\"code-inline\">192.168.1.1</code> enligt provanteckningarna.",
-    hint: "standby 150 ip 192.168.1.1",
-    canonical: "standby 150 ip 192.168.1.1",
-    validRegex: /^standby\s+150\s+ip\s+192\.168\.1\.1$/i,
-    explanation: "Skapar HSRP-grupp 150 och sätter den virtuella gateway-adressen till 192.168.1.1."
-  },
-  {
-    id: "cmd-hsrp-150-prio",
-    cat: "prov-labb",
-    targetDevice: "R1(config-if)#",
-    title: "Sätt Grupp 150 Prioritet till 110",
-    desc: "Sätt HSRP-prioriteten för grupp 150 till 110 så att R1 vinner valet och blir Active framför R2 (som har standard 100).",
-    hint: "standby 150 priority 110",
-    canonical: "standby 150 priority 110",
-    validRegex: /^(standby\s+150\s+priority\s+110|standby\s+150\s+prio\s+110)$/i,
-    explanation: "Sätter prioritet 110 på grupp 150. Högsta prioritet vinner valet till Active."
-  },
-  {
-    id: "cmd-hsrp-150-preempt",
-    cat: "prov-labb",
-    targetDevice: "R1(config-if)#",
-    title: "Aktivera Preemption för Grupp 150",
-    desc: "Aktivera preemption för HSRP-grupp 150 så att R1 kan återta ledarrollen som Active om den startar om efter ett fel.",
-    hint: "standby 150 preempt",
-    canonical: "standby 150 preempt",
-    validRegex: /^standby\s+150\s+preempt$/i,
-    explanation: "Gör att R1 med högre prioritet kan preemptera och återta rollen som Active vid omstart."
-  },
-  {
-    id: "cmd-hsrp-150-timers",
-    cat: "prov-labb",
-    targetDevice: "R1(config-if)#",
-    title: "Snabba Timers för Grupp 150 (Hello 1s, Hold 3s)",
-    desc: "Konfigurera snabba timers för grupp 150 med Hello 1 sekund och Hold 3 sekunder enligt 3x-regeln från provet.",
-    hint: "standby 150 timers 1 3",
-    canonical: "standby 150 timers 1 3",
-    validRegex: /^standby\s+150\s+timers\s+1\s+3$/i,
-    explanation: "Sätter Hello-timer till 1s och Hold-timer till 3s (minst 3x Hello för att undvika onödiga rollbyten)."
-  },
-  {
-    id: "cmd-hsrp-150-track",
-    cat: "prov-labb",
-    targetDevice: "R1(config-if)#",
-    title: "Interface Tracking för Uplink (Skydd mot Black Holes)",
-    desc: "Konfigurera interface tracking för grupp 150 mot upplänken g0/0 med ett prioritetavdrag på 20 vid avbrott.",
-    hint: "standby 150 track g0/0 20",
-    canonical: "standby 150 track g0/0 20",
-    validRegex: /^(standby\s+150\s+track\s+(g0\/0|gigabitethernet\s*0\/0)\s+20)$/i,
-    explanation: "Sänker prioriteten med 20 om upplänken går ner så reservroutern kan ta över och undvika trafikblindgång."
-  },
-  {
-    id: "cmd-hsrp-arp-a",
-    cat: "prov-labb",
-    targetDevice: "C:\\Users\\gonriv>",
-    title: "Verifiera Virtuell MAC-adress i Windows (arp -a)",
-    desc: "Kör kommandot i Windows för att granska ARP-tabellen och verifiera att gatewayens IP <code class=\"code-inline\">10.1.1.1</code> är bunden till dess virtuella MAC-adress.",
-    hint: "arp -a",
-    canonical: "arp -a",
-    validRegex: /^(arp\s+-a|arp\s+\/a)$/i,
-    explanation: "Visar Windows ARP-tabell där default gateway 10.1.1.1 har MAC 00-00-0c-07-ac-01 (dynamic)."
+    validRegex: /^(debug|deb)\s+stand(by)?\s+events$/i,
+    explanation: "Övervakar och loggar HSRP-händelser direkt i terminalen."
   }
 ];
 
@@ -2635,7 +2497,7 @@ const state = {
     category: "all",
     filteredList: [],
     currentIndex: 0,
-    mode: "typing" // 'typing' or 'cards'
+    completedIds: new Set()
   },
   // Configs
   config: {
@@ -3196,139 +3058,155 @@ function getDigintoCategoryName(cat) {
 }
 
 // ==========================================
-// 8. CLI COMMANDS TRAINER (Tab 2)
+// 8. CLI COMMANDS TRAINER (Tab 2: De 12 viktigaste kommandona)
 // ==========================================
 function initCommands() {
-  // Category chips
-  const chips = document.querySelectorAll(".cmd-cat-chip");
-  chips.forEach(chip => {
-    chip.addEventListener("click", () => {
-      sfx.playClick();
-      chips.forEach(c => c.classList.remove("active"));
-      chip.classList.add("active");
-      state.commands.category = chip.getAttribute("data-cat");
-      filterAndRenderCommands();
-    });
-  });
-
-  // Mode buttons (Typing vs Cards)
-  const typeBtn = document.getElementById("cmdModeTypeBtn");
-  const cardBtn = document.getElementById("cmdModeCardBtn");
-
-  typeBtn.addEventListener("click", () => {
-    sfx.playClick();
-    typeBtn.classList.add("active");
-    cardBtn.classList.remove("active");
-    document.getElementById("cmdTypingView").style.display = "block";
-    document.getElementById("cmdCardsView").style.display = "none";
-  });
-
-  cardBtn.addEventListener("click", () => {
-    sfx.playClick();
-    cardBtn.classList.add("active");
-    typeBtn.classList.remove("active");
-    document.getElementById("cmdTypingView").style.display = "none";
-    document.getElementById("cmdCardsView").style.display = "block";
-    renderFlashcards();
-  });
-
-  // Terminal actions
   const input = document.getElementById("terminalInput");
   const submitBtn = document.getElementById("submitCmdBtn");
+  const prevCmdBtn = document.getElementById("prevCmdBtn");
+  const nextCmdBtn = document.getElementById("nextCmdBtn");
   const hintBtn = document.getElementById("showCmdHintBtn");
   const answerBtn = document.getElementById("showCmdAnswerBtn");
-  const nextCmdBtn = document.getElementById("nextCmdBtn");
 
-  submitBtn.addEventListener("click", () => submitTerminalCommand());
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      submitTerminalCommand();
-    }
-  });
+  if (submitBtn) {
+    submitBtn.addEventListener("click", () => submitTerminalCommand());
+  }
 
-  hintBtn.addEventListener("click", () => {
-    const hintBox = document.getElementById("cmdHintBox");
-    const cmd = state.commands.filteredList[state.commands.currentIndex];
-    if (cmd) {
-      document.getElementById("cmdHintText").textContent = cmd.hint;
-      hintBox.style.display = "flex";
-    }
-  });
+  if (input) {
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        submitTerminalCommand();
+      }
+    });
+  }
 
-  answerBtn.addEventListener("click", () => {
-    const cmd = state.commands.filteredList[state.commands.currentIndex];
-    if (cmd) {
-      input.value = cmd.canonical;
-      input.focus();
-    }
-  });
+  if (prevCmdBtn) {
+    prevCmdBtn.addEventListener("click", () => {
+      sfx.playClick();
+      if (state.commands.filteredList.length > 0) {
+        state.commands.currentIndex = (state.commands.currentIndex - 1 + state.commands.filteredList.length) % state.commands.filteredList.length;
+        renderCurrentCommand();
+      }
+    });
+  }
 
-  nextCmdBtn.addEventListener("click", () => {
-    sfx.playClick();
-    state.commands.currentIndex = (state.commands.currentIndex + 1) % state.commands.filteredList.length;
-    renderCurrentCommand();
-  });
+  if (nextCmdBtn) {
+    nextCmdBtn.addEventListener("click", () => {
+      sfx.playClick();
+      if (state.commands.filteredList.length > 0) {
+        state.commands.currentIndex = (state.commands.currentIndex + 1) % state.commands.filteredList.length;
+        renderCurrentCommand();
+      }
+    });
+  }
+
+  if (hintBtn) {
+    hintBtn.addEventListener("click", () => {
+      const hintBox = document.getElementById("cmdHintBox");
+      const cmd = state.commands.filteredList[state.commands.currentIndex];
+      if (cmd && hintBox) {
+        document.getElementById("cmdHintText").textContent = `Tips: ${cmd.hint}`;
+        hintBox.style.display = "flex";
+      }
+    });
+  }
+
+  if (answerBtn) {
+    answerBtn.addEventListener("click", () => {
+      const cmd = state.commands.filteredList[state.commands.currentIndex];
+      if (cmd && input) {
+        input.value = cmd.canonical;
+        input.focus();
+      }
+    });
+  }
 
   filterAndRenderCommands();
 }
 
-function filterAndRenderCommands() {
-  if (state.commands.category === "all") {
-    state.commands.filteredList = [...COMMANDS_DB];
-  } else {
-    state.commands.filteredList = COMMANDS_DB.filter(c => c.cat === state.commands.category);
+function updateCommandMastery() {
+  const countEl = document.getElementById("cmdMasteryCount");
+  if (countEl) {
+    const total = state.commands.filteredList.length;
+    const done = state.commands.completedIds.size;
+    countEl.textContent = `${done} / ${total} klara`;
+    if (done === total && total > 0) {
+      countEl.style.color = "var(--color-success)";
+    }
   }
+}
+
+function filterAndRenderCommands() {
+  state.commands.filteredList = [...COMMANDS_DB];
   state.commands.currentIndex = 0;
   renderCurrentCommand();
   renderCommandSidebar();
-  renderFlashcards();
+  updateCommandMastery();
 }
 
 function renderCurrentCommand() {
   const cmd = state.commands.filteredList[state.commands.currentIndex];
   if (!cmd) return;
 
-  document.getElementById("cmdTargetDevice").textContent = cmd.targetDevice;
-  document.getElementById("termPrompt").textContent = cmd.targetDevice;
-  document.getElementById("cmdCounter").textContent = `${state.commands.currentIndex + 1} / ${state.commands.filteredList.length}`;
-  document.getElementById("cmdGoalTitle").textContent = cmd.title;
-  document.getElementById("cmdGoalDesc").innerHTML = cmd.desc;
-  document.getElementById("cmdHintBox").style.display = "none";
-  document.getElementById("cmdFeedbackBar").style.display = "none";
+  const targetDev = document.getElementById("cmdTargetDevice");
+  if (targetDev) targetDev.textContent = cmd.targetDevice;
+
+  const promptEl = document.getElementById("termPrompt");
+  if (promptEl) promptEl.textContent = cmd.targetDevice;
+
+  const counterEl = document.getElementById("cmdCounter");
+  if (counterEl) counterEl.textContent = `Kommando ${state.commands.currentIndex + 1} av ${state.commands.filteredList.length}`;
+
+  const titleEl = document.getElementById("cmdGoalTitle");
+  if (titleEl) titleEl.textContent = cmd.title;
+
+  const descEl = document.getElementById("cmdGoalDesc");
+  if (descEl) descEl.innerHTML = cmd.desc;
+
+  const hintBox = document.getElementById("cmdHintBox");
+  if (hintBox) hintBox.style.display = "none";
+
+  const feedback = document.getElementById("cmdFeedbackBar");
+  if (feedback) feedback.style.display = "none";
 
   const input = document.getElementById("terminalInput");
-  input.value = "";
-  input.focus();
+  if (input) {
+    input.value = "";
+    input.focus();
+  }
 
   // Reset terminal log
   const log = document.getElementById("terminalLog");
-  log.innerHTML = `
-    <div class="term-line output">Cisco IOS Software, C3650 Multilayer Switch CLI</div>
-    <div class="term-line output">Mål: ${cmd.title}</div>
-    <div class="term-line instruction">Skriv kommandot vid prompten nedan och tryck Enter:</div>
-  `;
+  if (log) {
+    const isDone = state.commands.completedIds.has(cmd.id);
+    log.innerHTML = `
+      <div class="term-line output">Cisco IOS Software, C3650 Multilayer Switch CLI</div>
+      <div class="term-line output">Mål: ${escapeHtml(cmd.title)} ${isDone ? '<span style="color:#00e676; font-weight:700;">[KLAR ✓]</span>' : ''}</div>
+      <div class="term-line instruction">Skriv kommandot vid prompten nedan och tryck Enter:</div>
+    `;
+  }
 
-  // Highlight active in sidebar
-  const items = document.querySelectorAll(".cmd-list-item");
-  items.forEach((item, idx) => {
-    if (idx === state.commands.currentIndex) {
-      item.classList.add("active");
-    } else {
-      item.classList.remove("active");
-    }
-  });
+  renderCommandSidebar();
+  updateCommandMastery();
 }
 
 function renderCommandSidebar() {
   const container = document.getElementById("commandQuickList");
+  if (!container) return;
   container.innerHTML = "";
 
   state.commands.filteredList.forEach((cmd, idx) => {
+    const isCompleted = state.commands.completedIds.has(cmd.id);
+    const isActive = idx === state.commands.currentIndex;
+
     const item = document.createElement("div");
-    item.className = `cmd-list-item ${idx === state.commands.currentIndex ? 'active' : ''}`;
+    item.className = `cmd-list-item ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}`;
     item.innerHTML = `
-      <div class="cmd-item-code">${escapeHtml(cmd.canonical)}</div>
-      <div class="cmd-item-desc">${escapeHtml(cmd.title)}</div>
+      <div class="cmd-item-left">
+        <span class="cmd-item-num">${idx + 1}</span>
+        <span class="cmd-item-title">${escapeHtml(cmd.title)}</span>
+      </div>
+      <span class="cmd-item-status">${isCompleted ? '✓ Klar' : '⏳'}</span>
     `;
 
     item.addEventListener("click", () => {
@@ -3338,36 +3216,28 @@ function renderCommandSidebar() {
     });
 
     container.appendChild(item);
+
+    if (isActive) {
+      setTimeout(() => {
+        item.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }, 20);
+    }
   });
 }
 
 function renderFlashcards() {
-  const container = document.getElementById("commandCardsGrid");
-  container.innerHTML = "";
-
-  state.commands.filteredList.forEach(cmd => {
-    const card = document.createElement("div");
-    card.className = "flashcard";
-    card.innerHTML = `
-      <div>
-        <div class="fc-tag">${cmd.targetDevice}</div>
-        <div class="fc-question">${cmd.title}</div>
-        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">${cmd.desc}</p>
-      </div>
-      <div class="fc-answer">
-        <code style="font-weight: 700;">${cmd.canonical}</code>
-      </div>
-    `;
-    container.appendChild(card);
-  });
+  // Legacy stub - flashcards removed in favor of pure typing trainer
 }
 
 function submitTerminalCommand() {
   const input = document.getElementById("terminalInput");
+  if (!input) return;
   const val = input.value.trim();
   if (!val) return;
 
   const cmd = state.commands.filteredList[state.commands.currentIndex];
+  if (!cmd) return;
+
   const isMatch = cmd.validRegex.test(val);
   const log = document.getElementById("terminalLog");
   const feedback = document.getElementById("cmdFeedbackBar");
@@ -3383,20 +3253,41 @@ function submitTerminalCommand() {
 
   if (isMatch) {
     sfx.playCorrect();
-    responseLine.textContent = `% Rätt kommando! Syntax verifierad.`;
+    state.commands.completedIds.add(cmd.id);
+    updateCommandMastery();
+    renderCommandSidebar();
+
+    responseLine.textContent = `% Rätt kommando! Syntax och parametrar verifierade.`;
     log.appendChild(responseLine);
 
-    feedback.className = "cmd-feedback-bar correct";
-    feedback.textContent = `✅ Utmärkt! "${val}" är korrekt. ${cmd.explanation}`;
-    feedback.style.display = "block";
+    if (feedback) {
+      feedback.className = "cmd-feedback-bar correct";
+      feedback.innerHTML = `✅ <strong>Rätt!</strong> "${escapeHtml(val)}" är korrekt. ${cmd.explanation}`;
+      feedback.style.display = "block";
+    }
+
+    // Auto-advance after brief pause
+    setTimeout(() => {
+      if (state.commands.completedIds.size === state.commands.filteredList.length) {
+        sfx.playWin();
+        if (feedback) {
+          feedback.innerHTML = `🎉 <strong>Grymt jobbat!</strong> Du har klarat alla 12 viktigaste HSRP-kommandon!`;
+        }
+      } else {
+        state.commands.currentIndex = (state.commands.currentIndex + 1) % state.commands.filteredList.length;
+        renderCurrentCommand();
+      }
+    }, 1300);
   } else {
     sfx.playWrong();
     responseLine.textContent = `% Invalid input detected at '^' marker or syntax mismatch.`;
     log.appendChild(responseLine);
 
-    feedback.className = "cmd-feedback-bar wrong";
-    feedback.innerHTML = `❌ Felaktigt kommando. Rätt syntax är: <code class="code-inline">${cmd.canonical}</code>`;
-    feedback.style.display = "block";
+    if (feedback) {
+      feedback.className = "cmd-feedback-bar wrong";
+      feedback.innerHTML = `❌ Fel syntax. Försök igen eller tryck på <strong>Visa Tips</strong> / <strong>Visa Rätt Svar</strong>.`;
+      feedback.style.display = "block";
+    }
   }
 
   log.scrollTop = log.scrollHeight;
