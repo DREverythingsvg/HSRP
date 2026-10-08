@@ -3683,11 +3683,12 @@ function renderGuidedInputs() {
     // Step Header
     const header = document.createElement("div");
     header.className = "guided-step-header";
+    const cleanTitle = step.title.replace(/^Steg\s+\d+\s*[-:]\s*/i, "");
     header.innerHTML = `
       <div class="guided-step-title">
         <span class="step-badge" id="stepBadge_${sIdx}">Steg ${sIdx + 1}</span>
-        <strong>${escapeHtml(step.title)}</strong>
-        <span class="step-item-count" style="font-size:0.75rem; color:var(--text-muted);">(${step.items.length} rader)</span>
+        <strong>${escapeHtml(cleanTitle)}</strong>
+        <span class="step-item-count" style="font-size:0.75rem; color:var(--text-muted);">(${step.items.length} kommandon)</span>
       </div>
       <div class="guided-step-actions">
         <button class="step-action-btn step-hint-btn" data-step="${sIdx}" title="Fyll i facit för bara detta steg">💡 Fyll steg</button>

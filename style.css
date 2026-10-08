@@ -1599,19 +1599,21 @@ body {
   padding: 1.2rem;
   background: #090306;
   min-height: 480px;
-  max-height: 650px;
+  max-height: 750px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.2rem;
 }
 
 .guided-step-card {
   background: #0d0408;
   border: 1px solid var(--ruby-border-subtle);
   border-radius: var(--radius-md);
-  overflow: hidden;
+  overflow: visible;
   transition: border-color var(--transition-fast);
+  flex-shrink: 0;
+  width: 100%;
 }
 
 .guided-step-card:hover {
