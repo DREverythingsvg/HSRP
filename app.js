@@ -2789,7 +2789,7 @@ function showQuizFinished() {
     <div>❌ Antal fel: <strong>${state.quiz.scoreWrong}</strong></div>
     <div>🔥 Högsta streak i omgången: <strong>${state.quiz.streak}</strong></div>
     <div style="margin-top: 0.8rem; font-size: 0.88rem; color: #ff99ac;">
-      ${pct >= 85 ? '🌟 Fantastiskt! Du är helt redo för provet på FHRP & HSRP!' : pct >= 60 ? '👍 Bra jobbat! Träna lite mer på detaljer som MAC-adresser och VRRP för full pott.' : '💪 Fortsätt öva! Kolla fliken "Snabbguide & Provfusk" och kör en ny omgång.'}
+      ${pct >= 85 ? '🌟 Fantastiskt! Du är helt redo för provet på FHRP & HSRP!' : pct >= 60 ? '👍 Bra jobbat! Träna lite mer på detaljer som MAC-adresser och VRRP för full pott.' : '💪 Fortsätt öva! Kolla fliken "Snabbguide" och kör en ny omgång.'}
     </div>
   `;
 }
