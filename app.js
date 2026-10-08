@@ -2520,6 +2520,13 @@ const state = {
     mode: "guided",
     savedValues: {}
   },
+  // Subnetting Trainer
+  subnet: {
+    currentTask: null,
+    difficulty: "classC",
+    solvedCount: 0,
+    streak: 0
+  },
   // Global continuous streak
   streak: 0
 };
@@ -2535,6 +2542,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initCommands();
   initConfigWorkspace();
   initTopologies();
+  initSubnetTrainer();
 });
 
 function initTabs() {
@@ -4184,3 +4192,602 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
+
+// ==========================================
+// 10. IPV4 SUBNETTING TRAINER MODULE
+// ==========================================
+
+function ipToInt(ip) {
+  return ip.trim().split('.').reduce((acc, oct) => ((acc * 256) + parseInt(oct, 10)) >>> 0, 0) >>> 0;
+}
+
+function intToIp(int) {
+  return [
+    (int >>> 24) & 255,
+    (int >>> 16) & 255,
+    (int >>> 8) & 255,
+    int & 255
+  ].join('.');
+}
+
+function isValidIpv4(ip) {
+  const parts = ip.trim().split('.');
+  if (parts.length !== 4) return false;
+  return parts.every(part => {
+    if (!/^\d+$/.test(part)) return false;
+    const num = parseInt(part, 10);
+    return num >= 0 && num <= 255;
+  });
+}
+
+function calcSubnet(ipStr, prefix) {
+  const ipInt = ipToInt(ipStr);
+  const maskInt = prefix === 0 ? 0 : ((0xFFFFFFFF << (32 - prefix)) >>> 0);
+  const wildcardInt = (~maskInt) >>> 0;
+  const netInt = (ipInt & maskInt) >>> 0;
+  const bcastInt = (netInt | wildcardInt) >>> 0;
+
+  const totalIps = Math.pow(2, 32 - prefix);
+  const usableHosts = prefix >= 31 ? (prefix === 31 ? 2 : 1) : totalIps - 2;
+
+  const firstInt = prefix >= 31 ? netInt : (netInt + 1) >>> 0;
+  const lastInt = prefix >= 31 ? bcastInt : (bcastInt - 1) >>> 0;
+
+  const maskStr = intToIp(maskInt);
+  const wildcardStr = intToIp(wildcardInt);
+  const netStr = intToIp(netInt);
+  const bcastStr = intToIp(bcastInt);
+  const firstStr = intToIp(firstInt);
+  const lastStr = intToIp(lastInt);
+
+  // Active octet (1..4) where prefix ends
+  const octetIndex = Math.min(3, Math.floor((prefix - 1) / 8));
+  const maskOctets = maskStr.split('.').map(Number);
+  const activeOctetMask = maskOctets[octetIndex];
+  let magicNumber = 256 - activeOctetMask;
+  if (prefix === 24) magicNumber = 256;
+
+  const borrowedBits = prefix % 8 === 0 ? 8 : (prefix % 8);
+
+  const firstOctet = parseInt(ipStr.split('.')[0], 10);
+  let netClass = "Klass C";
+  if (firstOctet < 128) netClass = "Klass A";
+  else if (firstOctet < 192) netClass = "Klass B";
+
+  return {
+    ip: ipStr,
+    prefix,
+    mask: maskStr,
+    wildcard: wildcardStr,
+    netId: netStr,
+    firstHost: firstStr,
+    lastHost: lastStr,
+    bcast: bcastStr,
+    usableHosts,
+    magicNumber,
+    borrowedBits,
+    activeOctet: octetIndex + 1,
+    activeOctetMask,
+    netClass
+  };
+}
+
+function generateRandomSubnetTask(diff = "classC") {
+  let targetDiff = diff;
+  if (targetDiff === "mixed" || targetDiff === "random") {
+    const pool = ["classC", "classC", "classC", "classB", "classB", "classA"];
+    targetDiff = pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  let ip = "";
+  let prefix = 24;
+
+  if (targetDiff === "classC") {
+    // /24 - /30
+    const prefixes = [24, 25, 26, 26, 27, 27, 28, 28, 29, 30];
+    prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+    const o3 = Math.floor(Math.random() * 50) + 1;
+    const o4 = Math.floor(Math.random() * 254) + 1;
+    ip = `192.168.${o3}.${o4}`;
+  } else if (targetDiff === "classB") {
+    // /17 - /23
+    const prefixes = [17, 18, 19, 20, 21, 22, 23];
+    prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+    const o2 = 16 + Math.floor(Math.random() * 16);
+    const o3 = Math.floor(Math.random() * 250) + 1;
+    const o4 = Math.floor(Math.random() * 254) + 1;
+    ip = `172.${o2}.${o3}.${o4}`;
+  } else {
+    // classA: /9 - /15
+    const prefixes = [9, 10, 11, 12, 13, 14, 15];
+    prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+    const o2 = Math.floor(Math.random() * 250) + 1;
+    const o3 = Math.floor(Math.random() * 250) + 1;
+    const o4 = Math.floor(Math.random() * 254) + 1;
+    ip = `10.${o2}.${o3}.${o4}`;
+  }
+
+  return calcSubnet(ip, prefix);
+}
+
+function initSubnetTrainer() {
+  const container = document.getElementById("tab-subnetting");
+  if (!container) return;
+
+  // Initialize first task
+  state.subnet.difficulty = "classC";
+  state.subnet.solvedCount = 0;
+  state.subnet.streak = 0;
+  state.subnet.currentTask = generateRandomSubnetTask("classC");
+  renderSubnetTask();
+
+  // Difficulty Pill Selectors
+  const diffPills = container.querySelectorAll("#subnetDiffSelector .pill-btn, .diff-pill");
+  diffPills.forEach(pill => {
+    pill.addEventListener("click", () => {
+      sfx.playClick();
+      diffPills.forEach(p => p.classList.remove("active"));
+      pill.classList.add("active");
+      state.subnet.difficulty = pill.getAttribute("data-diff") || "classC";
+      state.subnet.currentTask = generateRandomSubnetTask(state.subnet.difficulty);
+      renderSubnetTask();
+    });
+  });
+
+  // Action Buttons
+  const newBtn = document.getElementById("subnetNewTaskBtn");
+  if (newBtn) {
+    newBtn.addEventListener("click", () => {
+      sfx.playClick();
+      state.subnet.currentTask = generateRandomSubnetTask(state.subnet.difficulty);
+      renderSubnetTask();
+    });
+  }
+
+  const nextBtn = document.getElementById("subnetNextBtn");
+  if (nextBtn) {
+    nextBtn.addEventListener("click", () => {
+      sfx.playClick();
+      state.subnet.currentTask = generateRandomSubnetTask(state.subnet.difficulty);
+      renderSubnetTask();
+    });
+  }
+
+  const checkBtn = document.getElementById("subnetCheckBtn");
+  if (checkBtn) {
+    checkBtn.addEventListener("click", () => {
+      checkSubnetTask();
+    });
+  }
+
+  const hintBtn = document.getElementById("subnetHintBtn");
+  if (hintBtn) {
+    hintBtn.addEventListener("click", () => {
+      showSubnetHint();
+    });
+  }
+
+  const solveBtn = document.getElementById("subnetSolveBtn");
+  if (solveBtn) {
+    solveBtn.addEventListener("click", () => {
+      showSubnetSolution();
+    });
+  }
+
+  // Custom IP Drawer Toggle
+  const customToggleBtn = document.getElementById("subnetCustomToggleBtn");
+  const customDrawer = document.getElementById("subnetCustomDrawer");
+  if (customToggleBtn && customDrawer) {
+    customToggleBtn.addEventListener("click", () => {
+      sfx.playClick();
+      const isHidden = customDrawer.style.display === "none";
+      customDrawer.style.display = isHidden ? "block" : "none";
+      if (isHidden) {
+        document.getElementById("customIpInput")?.focus();
+      }
+    });
+  }
+
+  // Set Custom IP
+  const setCustomBtn = document.getElementById("subnetSetCustomBtn");
+  const customInput = document.getElementById("customIpInput");
+  if (setCustomBtn && customInput) {
+    const handleCustomSubmit = () => {
+      const val = customInput.value.trim();
+      if (!val) return;
+      const parsed = parseCustomIp(val);
+      if (parsed) {
+        sfx.playCorrect();
+        state.subnet.currentTask = calcSubnet(parsed.ip, parsed.prefix);
+        if (customDrawer) customDrawer.style.display = "none";
+        renderSubnetTask();
+        const fb = document.getElementById("subnetFeedbackBox");
+        if (fb) {
+          fb.style.display = "block";
+          fb.className = "subnet-feedback-box feedback-info";
+          fb.innerHTML = `✅ Laddade uppgift med din egen IP: <strong>${parsed.ip}/${parsed.prefix}</strong>. Beräkna nätverksdatan!`;
+        }
+      } else {
+        sfx.playWrong();
+        alert("Ogiltig IP eller prefix! Format: t.ex. 192.168.1.100/26 eller 10.0.5.20/22 (prefix mellan /8 och /30).");
+      }
+    };
+
+    setCustomBtn.addEventListener("click", handleCustomSubmit);
+    customInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleCustomSubmit();
+      }
+    });
+  }
+
+  // Cheat Sheet Section Toggle
+  const cheatToggleNavBtn = document.getElementById("subnetCheatToggleBtn");
+  const cheatSection = document.getElementById("subnetCheatSection");
+  if (cheatToggleNavBtn && cheatSection) {
+    cheatToggleNavBtn.addEventListener("click", () => {
+      sfx.playClick();
+      cheatSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
+  const cheatToggleTableBtn = document.getElementById("cheatToggleTableBtn");
+  const cheatTableWrap = document.getElementById("cheatTableWrap");
+  if (cheatToggleTableBtn && cheatTableWrap) {
+    cheatToggleTableBtn.addEventListener("click", () => {
+      sfx.playClick();
+      const isHidden = cheatTableWrap.style.display === "none";
+      cheatTableWrap.style.display = isHidden ? "block" : "none";
+      cheatToggleTableBtn.textContent = isHidden ? "Minimera" : "Visa Lathund";
+    });
+  }
+
+  // Keyboard navigation through input fields: Enter moves to next or checks
+  const inputOrder = ["subNetId", "subFirstHost", "subLastHost", "subBcast", "subMask", "subHosts"];
+  inputOrder.forEach((id, idx) => {
+    const inputEl = document.getElementById(id);
+    if (!inputEl) return;
+    inputEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (idx < inputOrder.length - 1) {
+          const nextEl = document.getElementById(inputOrder[idx + 1]);
+          if (nextEl) nextEl.focus();
+        } else {
+          checkSubnetTask();
+        }
+      }
+    });
+  });
+}
+
+function parseCustomIp(str) {
+  const raw = str.trim();
+  let ip = "";
+  let prefix = 24;
+
+  if (raw.includes("/")) {
+    const parts = raw.split("/");
+    ip = parts[0].trim();
+    prefix = parseInt(parts[1].trim(), 10);
+  } else if (raw.includes(" ")) {
+    const parts = raw.split(/\s+/);
+    ip = parts[0].trim();
+    // could be mask dotted decimal
+    const maskPart = parts[1].trim();
+    if (maskPart.includes(".")) {
+      prefix = maskToPrefix(maskPart);
+    } else {
+      prefix = parseInt(maskPart, 10);
+    }
+  } else {
+    ip = raw;
+    prefix = 24;
+  }
+
+  if (!isValidIpv4(ip)) return null;
+  if (isNaN(prefix) || prefix < 8 || prefix > 30) return null;
+
+  return { ip, prefix };
+}
+
+function maskToPrefix(maskStr) {
+  if (!isValidIpv4(maskStr)) return 24;
+  const int = ipToInt(maskStr);
+  let p = 0;
+  for (let i = 31; i >= 0; i--) {
+    if ((int >>> i) & 1) p++;
+    else break;
+  }
+  return p;
+}
+
+function renderSubnetTask() {
+  const task = state.subnet.currentTask;
+  if (!task) return;
+
+  const ipEl = document.getElementById("subnetTargetIp");
+  const prefixEl = document.getElementById("subnetTargetPrefix");
+  const classBadge = document.getElementById("subnetClassBadge");
+  const prefixBadge = document.getElementById("subnetPrefixBadge");
+
+  if (ipEl) ipEl.textContent = task.ip;
+  if (prefixEl) prefixEl.textContent = task.prefix;
+  if (classBadge) classBadge.textContent = task.netClass;
+  if (prefixBadge) prefixBadge.textContent = `Prefix: /${task.prefix}`;
+
+  // Clear inputs and status indicators
+  const fieldIds = ["subNetId", "subFirstHost", "subLastHost", "subBcast", "subMask", "subHosts"];
+  fieldIds.forEach(id => {
+    const input = document.getElementById(id);
+    if (input) {
+      input.value = "";
+      input.classList.remove("field-correct", "field-wrong");
+    }
+  });
+
+  const statusMap = {
+    subNetId: "status-netId",
+    subFirstHost: "status-firstHost",
+    subLastHost: "status-lastHost",
+    subBcast: "status-bcast",
+    subMask: "status-mask",
+    subHosts: "status-hosts"
+  };
+  Object.values(statusMap).forEach(sId => {
+    const sEl = document.getElementById(sId);
+    if (sEl) {
+      sEl.textContent = "";
+      sEl.className = "field-status";
+    }
+  });
+
+  // Hide feedback and solution boxes
+  const fb = document.getElementById("subnetFeedbackBox");
+  if (fb) {
+    fb.style.display = "none";
+    fb.innerHTML = "";
+  }
+
+  const sol = document.getElementById("subnetSolutionBox");
+  if (sol) {
+    sol.style.display = "none";
+    sol.innerHTML = "";
+  }
+
+  // Update stats counters
+  const solvedEl = document.getElementById("subnetSolvedCount");
+  if (solvedEl) solvedEl.textContent = state.subnet.solvedCount;
+
+  const streakEl = document.getElementById("subnetStreakCount");
+  if (streakEl) streakEl.textContent = `🔥 ${state.subnet.streak}`;
+
+  // Focus the first input field
+  const firstInput = document.getElementById("subNetId");
+  if (firstInput) firstInput.focus();
+}
+
+function checkSubnetTask() {
+  const task = state.subnet.currentTask;
+  if (!task) return;
+
+  const fields = [
+    { id: "subNetId", sId: "status-netId", expected: task.netId, label: "Nätverksadress" },
+    { id: "subFirstHost", sId: "status-firstHost", expected: task.firstHost, label: "Första värd" },
+    { id: "subLastHost", sId: "status-lastHost", expected: task.lastHost, label: "Sista värd" },
+    { id: "subBcast", sId: "status-bcast", expected: task.bcast, label: "Broadcast" },
+    { id: "subMask", sId: "status-mask", expected: task.mask, label: "Nätmask" },
+    { id: "subHosts", sId: "status-hosts", expected: String(task.usableHosts), label: "Antal värdar" }
+  ];
+
+  let correctCount = 0;
+
+  fields.forEach(f => {
+    const input = document.getElementById(f.id);
+    const status = document.getElementById(f.sId);
+    if (!input || !status) return;
+
+    const val = input.value.trim();
+    input.classList.remove("field-correct", "field-wrong");
+
+    if (!val) {
+      input.classList.add("field-wrong");
+      status.className = "field-status status-wrong";
+      status.innerHTML = `⚠️ Ej ifylld (Rätt: <code>${f.expected}</code>)`;
+    } else if (val.toLowerCase() === f.expected.toLowerCase()) {
+      correctCount++;
+      input.classList.add("field-correct");
+      status.className = "field-status status-correct";
+      status.innerHTML = `✓ Rätt!`;
+    } else {
+      input.classList.add("field-wrong");
+      status.className = "field-status status-wrong";
+      status.innerHTML = `✗ Fel (Rätt svar: <code>${f.expected}</code>)`;
+    }
+  });
+
+  const fb = document.getElementById("subnetFeedbackBox");
+
+  if (correctCount === fields.length) {
+    state.subnet.solvedCount++;
+    state.subnet.streak++;
+    sfx.playWin();
+
+    if (fb) {
+      fb.style.display = "block";
+      fb.className = "subnet-feedback-box feedback-success";
+      fb.innerHTML = `
+        <div class="fb-header">
+          <span class="fb-icon">🎉</span>
+          <strong>Fantastiskt! Alla 6 parametrarna är 100% korrekta!</strong>
+        </div>
+        <p>Du har bemästrat <strong>${task.ip}/${task.prefix}</strong>. Din streak är nu <strong>🔥 ${state.subnet.streak} i rad!</strong></p>
+      `;
+    }
+
+    // Auto-reveal step-by-step math explanation
+    showSubnetSolution(false);
+  } else {
+    state.subnet.streak = 0;
+    sfx.playWrong();
+
+    if (fb) {
+      fb.style.display = "block";
+      fb.className = "subnet-feedback-box feedback-error";
+      fb.innerHTML = `
+        <div class="fb-header">
+          <span class="fb-icon">⚠️</span>
+          <strong>${correctCount} av ${fields.length} rätt.</strong>
+        </div>
+        <p>Kontrollera de rödmarkerade fälten ovan. Klicka på <strong>💡 Visa Ledtråd</strong> för att se Magic Number och steglängd!</p>
+      `;
+    }
+  }
+
+  // Update counters
+  const solvedEl = document.getElementById("subnetSolvedCount");
+  if (solvedEl) solvedEl.textContent = state.subnet.solvedCount;
+
+  const streakEl = document.getElementById("subnetStreakCount");
+  if (streakEl) streakEl.textContent = `🔥 ${state.subnet.streak}`;
+}
+
+function showSubnetHint() {
+  const task = state.subnet.currentTask;
+  if (!task) return;
+
+  sfx.playTone(440, "triangle", 0.15);
+
+  const fb = document.getElementById("subnetFeedbackBox");
+  if (!fb) return;
+
+  const ipOctets = task.ip.split('.');
+  const relevantOctetVal = ipOctets[task.activeOctet - 1];
+
+  let stepMsg = "";
+  if (task.prefix >= 24) {
+    stepMsg = `Ändringen sker i <strong>4:e oktetten</strong> (sista siffran: <code>${relevantOctetVal}</code>).`;
+  } else if (task.prefix >= 16) {
+    stepMsg = `Ändringen sker i <strong>3:e oktetten</strong> (siffran: <code>${relevantOctetVal}</code>). 4:e oktetten blir 0 för nätverk och 255 för broadcast.`;
+  } else {
+    stepMsg = `Ändringen sker i <strong>2:a oktetten</strong> (siffran: <code>${relevantOctetVal}</code>).`;
+  }
+
+  fb.style.display = "block";
+  fb.className = "subnet-feedback-box feedback-hint";
+  fb.innerHTML = `
+    <div class="fb-header">
+      <span class="fb-icon">💡</span>
+      <strong>Pedagogisk Ledtråd för ${task.ip}/${task.prefix}:</strong>
+    </div>
+    <ul class="hint-list">
+      <li><strong>Aktiv oktett:</strong> ${stepMsg}</li>
+      <li><strong>Nätmask i aktiv oktett:</strong> <code>${task.activeOctetMask}</code></li>
+      <li><strong>Magic Number (Steglängd):</strong> <code>256 - ${task.activeOctetMask} = ${task.magicNumber}</code>.</li>
+      <li><strong>Subnätsgränser:</strong> Subnäten i oktett ${task.activeOctet} börjar på multiplar av ${task.magicNumber}: 
+        <code>0, ${task.magicNumber}, ${task.magicNumber * 2}, ${task.magicNumber * 3}...</code>. 
+        Vilket block hamnar <code>${relevantOctetVal}</code> i?
+      </li>
+      <li><strong>Antal värdar:</strong> Formel <code>2^(32 - ${task.prefix}) - 2 = 2^${32 - task.prefix} - 2 = ${task.usableHosts}</code></li>
+    </ul>
+  `;
+}
+
+function showSubnetSolution(fillInputs = true) {
+  const task = state.subnet.currentTask;
+  if (!task) return;
+
+  if (fillInputs) {
+    sfx.playTone(550, "sine", 0.15);
+    // Fill all inputs with correct values
+    const map = {
+      subNetId: task.netId,
+      subFirstHost: task.firstHost,
+      subLastHost: task.lastHost,
+      subBcast: task.bcast,
+      subMask: task.mask,
+      subHosts: task.usableHosts
+    };
+    Object.entries(map).forEach(([id, val]) => {
+      const input = document.getElementById(id);
+      if (input) {
+        input.value = val;
+        input.classList.remove("field-wrong");
+        input.classList.add("field-correct");
+      }
+    });
+
+    const statusMap = {
+      subNetId: "status-netId",
+      subFirstHost: "status-firstHost",
+      subLastHost: "status-lastHost",
+      subBcast: "status-bcast",
+      subMask: "status-mask",
+      subHosts: "status-hosts"
+    };
+    Object.values(statusMap).forEach(sId => {
+      const sEl = document.getElementById(sId);
+      if (sEl) {
+        sEl.textContent = "✓ Facit ifyllt";
+        sEl.className = "field-status status-correct";
+      }
+    });
+  }
+
+  const sol = document.getElementById("subnetSolutionBox");
+  if (!sol) return;
+
+  const octets = task.ip.split('.');
+  const activeOctVal = parseInt(octets[task.activeOctet - 1], 10);
+  const netOctVal = parseInt(task.netId.split('.')[task.activeOctet - 1], 10);
+  const bcastOctVal = parseInt(task.bcast.split('.')[task.activeOctet - 1], 10);
+
+  sol.style.display = "block";
+  sol.innerHTML = `
+    <div class="solution-header">
+      <span class="solution-icon">🎓</span>
+      <h3>Steg-för-steg Lösning & Facit för ${task.ip}/${task.prefix}</h3>
+    </div>
+    
+    <div class="solution-steps-grid">
+      <div class="sol-step card">
+        <div class="sol-step-title">Steg 1: Nätmask & Bitar</div>
+        <p>Prefixet <code>/${task.prefix}</code> innebär att de första <strong>${task.prefix} bitarna är 1:or</strong> och resten (${32 - task.prefix} st) är 0:or.</p>
+        <div class="sol-code-box">
+          Nätmask (decimal): <strong>${task.mask}</strong><br>
+          Wildcard mask: <strong>${task.wildcard}</strong>
+        </div>
+      </div>
+
+      <div class="sol-step card">
+        <div class="sol-step-title">Steg 2: Magic Number (Steglängd)</div>
+        <p>Ändringen sker i oktett <strong>${task.activeOctet}</strong> där masken är <code>${task.activeOctetMask}</code>.</p>
+        <div class="sol-code-box">
+          Magic Number = 256 - ${task.activeOctetMask} = <strong>${task.magicNumber}</strong>
+        </div>
+        <p class="sol-subtext">Subnäten börjar på multiplar av ${task.magicNumber}: 0, ${task.magicNumber}, ${task.magicNumber * 2}, ${task.magicNumber * 3}...</p>
+      </div>
+
+      <div class="sol-step card">
+        <div class="sol-step-title">Steg 3: Hitta Nätverksadress & Broadcast</div>
+        <p>Oktett ${task.activeOctet} har värdet <code>${activeOctVal}</code>. Det ligger i blocket mellan <strong>${netOctVal}</strong> och <strong>${bcastOctVal}</strong>:</p>
+        <div class="sol-code-box">
+          Nätverksadress: <strong>${task.netId}</strong><br>
+          Broadcast-adress: <strong>${task.bcast}</strong>
+        </div>
+      </div>
+
+      <div class="sol-step card">
+        <div class="sol-step-title">Steg 4: Värdintervall & Antal Värdar</div>
+        <p>Första giltiga IP är nätverk + 1, och sista giltiga IP är broadcast - 1:</p>
+        <div class="sol-code-box">
+          Första värd: <strong>${task.firstHost}</strong><br>
+          Sista värd: <strong>${task.lastHost}</strong><br>
+          Antal värdar: 2^${32 - task.prefix} - 2 = <strong>${task.usableHosts} st</strong>
+        </div>
+      </div>
+    </div>
+  `;
+}
+

@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=2.4">
+  <link rel="stylesheet" href="style.css?v=2.5">
 </head>
 <body class="theme-crimson">
   <div class="bg-glow-orb bg-orb-1"></div>
@@ -98,6 +98,11 @@
           <span class="tab-icon">🗺️</span>
           <span class="tab-text">Topologi & Nätverkskarta</span>
           <span class="tab-badge">Packet Tracer</span>
+        </button>
+        <button class="nav-tab" data-tab="tab-subnetting" role="tab" id="tabBtn-subnetting">
+          <span class="tab-icon">🧮</span>
+          <span class="tab-text">Subnetting Träning</span>
+          <span class="tab-badge badge-hot">IPv4</span>
         </button>
         <button class="nav-tab" data-tab="tab-theory" role="tab" id="tabBtn-theory">
           <span class="tab-icon">📖</span>
@@ -764,7 +769,194 @@ interface g1/0/2
       </div>
     </section>
 
-    <!-- ==================== TAB 5: SNABBGUIDE & PROVFUSK ==================== -->
+    <!-- ==================== TAB: SUBNETTING TRÄNARE ==================== -->
+    <section id="tab-subnetting" class="tab-pane" role="tabpanel">
+      <div class="pane-header">
+        <div class="pane-title-wrap">
+          <div class="pane-icon">🧮</div>
+          <div>
+            <h2>IPv4 Subnetting Träning</h2>
+            <p>Träna på att snabbt beräkna nätverks-ID, första/sista värd, broadcast, nätmask och antal användbara värdar från minnet!</p>
+          </div>
+        </div>
+        <div class="pane-controls subnet-pane-controls">
+          <div class="subnet-stat-pill">
+            <span class="stat-lbl">Klara:</span>
+            <strong id="subnetSolvedCount">0</strong>
+          </div>
+          <div class="subnet-stat-pill">
+            <span class="stat-lbl">Streak:</span>
+            <strong id="subnetStreakCount">🔥 0</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Difficulty & Mode Bar -->
+      <div class="subnet-controls-bar card">
+        <div class="subnet-diff-group">
+          <span class="ctrl-label">Svårighetsgrad:</span>
+          <div class="pill-group" id="subnetDiffSelector">
+            <button class="pill-btn active" data-diff="classC">Klass C (/24–/30)</button>
+            <button class="pill-btn" data-diff="classB">Klass B (/16–/23)</button>
+            <button class="pill-btn" data-diff="classA">Klass A (/8–/15)</button>
+            <button class="pill-btn" data-diff="random">🎲 Blandat</button>
+          </div>
+        </div>
+
+        <div class="subnet-action-btns">
+          <button id="subnetNewTaskBtn" class="btn btn-primary btn-sm">🎲 Ny Slumpad IP</button>
+          <button id="subnetCustomToggleBtn" class="btn btn-outline btn-sm">✍️ Skriv egen IP</button>
+          <button id="subnetCheatToggleBtn" class="btn btn-ghost btn-sm">📖 Lathund</button>
+        </div>
+      </div>
+
+      <!-- Custom IP Input Drawer (Hidden by default) -->
+      <div id="subnetCustomDrawer" class="subnet-custom-drawer card" style="display: none;">
+        <div class="custom-drawer-inner">
+          <label for="customIpInput"><strong>Skriv in egen IP och CIDR-prefix att träna på:</strong></label>
+          <div class="custom-input-row">
+            <input type="text" id="customIpInput" placeholder="t.ex. 192.168.1.100/26 eller 10.0.5.20/22" class="form-input">
+            <button id="subnetSetCustomBtn" class="btn btn-primary btn-sm">Ladda uppgift</button>
+          </div>
+          <span class="custom-help">Skriv en giltig IPv4-adress med CIDR-prefix (mellan /8 och /30).</span>
+        </div>
+      </div>
+
+      <!-- Main Workout Card -->
+      <div class="subnet-workout-layout">
+        <div class="subnet-main-card card">
+          <div class="target-ip-display">
+            <div class="target-meta">
+              <span class="badge badge-accent" id="subnetClassBadge">Klass C</span>
+              <span class="badge badge-outline" id="subnetPrefixBadge">Prefix: /26</span>
+            </div>
+            <div class="target-ip-hero" id="subnetTargetHero">
+              <span class="hero-ip" id="subnetTargetIp">192.168.10.68</span>
+              <span class="hero-slash">/</span>
+              <span class="hero-prefix" id="subnetTargetPrefix">26</span>
+            </div>
+            <p class="target-ip-desc" id="subnetTargetPrompt">
+              Beräkna nätverksinformationen för denna IP-adress och fyll i fälten nedan:
+            </p>
+          </div>
+
+          <!-- 6 Parameter Inputs Grid -->
+          <form id="subnetForm" class="subnet-fields-grid" onsubmit="return false;">
+            <div class="subnet-field-item">
+              <label for="subNetId">
+                <span class="field-title">1. Nätverksadress (Network ID)</span>
+                <span class="field-help">Första adressen i subnätet</span>
+              </label>
+              <input type="text" id="subNetId" class="subnet-input" placeholder="t.ex. 192.168.10.64" autocomplete="off" spellcheck="false">
+              <div class="field-status" id="status-netId"></div>
+            </div>
+
+            <div class="subnet-field-item">
+              <label for="subFirstHost">
+                <span class="field-title">2. Första Värdadress (First Host)</span>
+                <span class="field-help">Nätverksadress + 1</span>
+              </label>
+              <input type="text" id="subFirstHost" class="subnet-input" placeholder="t.ex. 192.168.10.65" autocomplete="off" spellcheck="false">
+              <div class="field-status" id="status-firstHost"></div>
+            </div>
+
+            <div class="subnet-field-item">
+              <label for="subLastHost">
+                <span class="field-title">3. Sista Värdadress (Last Host)</span>
+                <span class="field-help">Broadcast - 1</span>
+              </label>
+              <input type="text" id="subLastHost" class="subnet-input" placeholder="t.ex. 192.168.10.126" autocomplete="off" spellcheck="false">
+              <div class="field-status" id="status-lastHost"></div>
+            </div>
+
+            <div class="subnet-field-item">
+              <label for="subBcast">
+                <span class="field-title">4. Broadcast-adress</span>
+                <span class="field-help">Sista adressen i subnätet</span>
+              </label>
+              <input type="text" id="subBcast" class="subnet-input" placeholder="t.ex. 192.168.10.127" autocomplete="off" spellcheck="false">
+              <div class="field-status" id="status-bcast"></div>
+            </div>
+
+            <div class="subnet-field-item">
+              <label for="subMask">
+                <span class="field-title">5. Nätmask (Subnet Mask)</span>
+                <span class="field-help">Decimalform (Dotted decimal)</span>
+              </label>
+              <input type="text" id="subMask" class="subnet-input" placeholder="t.ex. 255.255.255.192" autocomplete="off" spellcheck="false">
+              <div class="field-status" id="status-mask"></div>
+            </div>
+
+            <div class="subnet-field-item">
+              <label for="subHosts">
+                <span class="field-title">6. Antal användbara värdar (Hosts)</span>
+                <span class="field-help">Formel: 2^h - 2</span>
+              </label>
+              <input type="text" id="subHosts" class="subnet-input" placeholder="t.ex. 62" autocomplete="off" spellcheck="false">
+              <div class="field-status" id="status-hosts"></div>
+            </div>
+          </form>
+
+          <!-- Action bar -->
+          <div class="subnet-actions-bar">
+            <div class="action-left">
+              <button id="subnetCheckBtn" class="btn btn-primary">Kontrollera Svar ↵</button>
+              <button id="subnetHintBtn" class="btn btn-ghost btn-sm">💡 Visa Ledtråd (Magic Number)</button>
+              <button id="subnetSolveBtn" class="btn btn-ghost btn-sm">👁️ Visa Lösning & Facit</button>
+            </div>
+            <div class="action-right">
+              <button id="subnetNextBtn" class="btn btn-outline btn-sm">Nästa Uppgift ➔</button>
+            </div>
+          </div>
+
+          <!-- Feedback Box -->
+          <div id="subnetFeedbackBox" class="subnet-feedback-box" style="display: none;"></div>
+
+          <!-- Step-by-Step Math Explanation Box -->
+          <div id="subnetSolutionBox" class="subnet-solution-box card" style="display: none;"></div>
+        </div>
+      </div>
+
+      <!-- Interactive Subnetting Cheat Sheet Table -->
+      <div id="subnetCheatSection" class="subnet-cheat-section card" style="margin-top: 1.5rem;">
+        <div class="cheat-header">
+          <div class="cheat-title">
+            <span class="cheat-icon">📖</span>
+            <div>
+              <h3>Subnetting Lathund & Snabbformler (Klass C /24 - /30)</h3>
+              <p>Översikt över lånade bitar, nätmasker, steglängder (Magic Number) och värdar för snabb beräkning.</p>
+            </div>
+          </div>
+          <button id="cheatToggleTableBtn" class="btn btn-ghost btn-sm">Minimera</button>
+        </div>
+        <div class="cheat-table-wrap" id="cheatTableWrap">
+          <table class="cheat-table">
+            <thead>
+              <tr>
+                <th>Prefix</th>
+                <th>Subnet Mask</th>
+                <th>Lånade Bitar</th>
+                <th>Steglängd (Magic No)</th>
+                <th>Totalt IP (2^h)</th>
+                <th>Användbara Hosts (2^h - 2)</th>
+                <th>Wildcard Mask</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><code>/24</code></td><td>255.255.255.0</td><td>0 bitar</td><td>256 (helt nät)</td><td>256</td><td><strong>254</strong></td><td>0.0.0.255</td></tr>
+              <tr><td><code>/25</code></td><td>255.255.255.128</td><td>1 bit (128)</td><td>128</td><td>128</td><td><strong>126</strong></td><td>0.0.0.127</td></tr>
+              <tr><td><code>/26</code></td><td>255.255.255.192</td><td>2 bitar (128+64)</td><td>64</td><td>64</td><td><strong>62</strong></td><td>0.0.0.63</td></tr>
+              <tr><td><code>/27</code></td><td>255.255.255.224</td><td>3 bitar (+32)</td><td>32</td><td>32</td><td><strong>30</strong></td><td>0.0.0.31</td></tr>
+              <tr><td><code>/28</code></td><td>255.255.255.240</td><td>4 bitar (+16)</td><td>16</td><td>16</td><td><strong>14</strong></td><td>0.0.0.15</td></tr>
+              <tr><td><code>/29</code></td><td>255.255.255.248</td><td>5 bitar (+8)</td><td>8</td><td>8</td><td><strong>6</strong></td><td>0.0.0.7</td></tr>
+              <tr><td><code>/30</code></td><td>255.255.255.252</td><td>6 bitar (+4)</td><td>4</td><td>4</td><td><strong>2</strong> (Punkt-till-punkt)</td><td>0.0.0.3</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 6: SNABBGUIDE & PROVFUSK ==================== -->
     <section id="tab-theory" class="tab-pane" role="tabpanel">
       <div class="pane-header">
         <div class="pane-title-wrap">
@@ -1028,6 +1220,6 @@ interface g1/0/2
     </div>
   </div>
 
-  <script src="app.js?v=2.4"></script>
+  <script src="app.js?v=2.5"></script>
 </body>
 </html>
