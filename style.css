@@ -1261,9 +1261,69 @@ body {
 /* ========================================================
    TAB 3: HELA KONFIGURATIONERNA (SKRIV & VALIDERING)
    ======================================================== */
+.config-pane-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  width: 100%;
+}
+
+.lab-pill-selector {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.lab-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--ruby-border);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1.2rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  transition: all var(--transition-fast);
+  color: var(--text-secondary);
+  flex: 1;
+  min-width: 250px;
+}
+
+.lab-btn:hover {
+  border-color: var(--accent-neon);
+  transform: translateY(-2px);
+}
+
+.lab-btn.active {
+  background: linear-gradient(135deg, rgba(255, 42, 95, 0.22), rgba(138, 43, 226, 0.16));
+  border-color: var(--accent-neon);
+  box-shadow: 0 0 20px var(--primary-red-glow);
+}
+
+.lab-btn strong {
+  font-size: 0.96rem;
+  color: #fff;
+  margin-top: 2px;
+}
+
+.lab-badge {
+  font-size: 0.72rem;
+  color: var(--accent-neon);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 800;
+}
+
+.lab-meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
 .device-pill-selector {
   display: flex;
-  gap: 0.7rem;
+  gap: 0.6rem;
   flex-wrap: wrap;
 }
 
@@ -1271,7 +1331,7 @@ body {
   background: var(--bg-card);
   border: 1px solid var(--ruby-border);
   border-radius: var(--radius-md);
-  padding: 0.65rem 1.1rem;
+  padding: 0.55rem 0.95rem;
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -1281,12 +1341,12 @@ body {
 }
 
 .device-btn strong {
-  font-size: 0.92rem;
+  font-size: 0.88rem;
   color: #fff;
 }
 
 .device-role {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: var(--accent-light);
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -1299,9 +1359,9 @@ body {
 }
 
 .device-btn.active {
-  background: rgba(255, 42, 95, 0.16);
+  background: rgba(255, 42, 95, 0.18);
   border-color: var(--accent-neon);
-  box-shadow: 0 0 20px var(--primary-red-glow);
+  box-shadow: 0 0 16px var(--primary-red-glow);
 }
 
 .device-btn.active strong {
@@ -1524,63 +1584,232 @@ body {
 /* Guided View */
 .guided-instructions {
   background: #11050a;
-  padding: 1rem 1.4rem;
+  padding: 0.9rem 1.4rem;
   border-bottom: 1px solid var(--ruby-border-subtle);
   font-size: 0.88rem;
   color: var(--accent-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.8rem;
 }
 
 .guided-inputs-container {
-  padding: 1.4rem;
+  padding: 1.2rem;
   background: #090306;
-  min-height: 400px;
-  max-height: 520px;
+  min-height: 480px;
+  max-height: 650px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 1rem;
+}
+
+.guided-step-card {
+  background: #0d0408;
+  border: 1px solid var(--ruby-border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color var(--transition-fast);
+}
+
+.guided-step-card:hover {
+  border-color: rgba(255, 42, 95, 0.35);
+}
+
+.guided-step-header {
+  background: #14060c;
+  padding: 0.7rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 42, 95, 0.12);
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.guided-step-title {
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--accent-light);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.guided-step-actions {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.step-action-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+  padding: 0.22rem 0.55rem;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: all var(--transition-fast);
+}
+
+.step-action-btn:hover {
+  background: rgba(255, 42, 95, 0.2);
+  border-color: var(--accent-light);
+  color: #fff;
+}
+
+.step-badge {
+  font-size: 0.74rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+.step-badge.complete {
+  background: rgba(0, 230, 118, 0.18);
+  color: var(--color-success);
+  border: 1px solid var(--color-success);
+}
+
+.guided-step-body {
+  padding: 0.8rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
 }
 
 .guided-line-row {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 0.6rem;
   font-family: var(--font-mono);
   font-size: 0.88rem;
+}
+
+.guided-line-num {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  width: 22px;
+  text-align: right;
+  flex-shrink: 0;
+  user-select: none;
 }
 
 .guided-prompt-prefix {
   color: var(--accent-neon);
   font-weight: 700;
-  width: 170px;
+  min-width: 140px;
+  max-width: 190px;
   flex-shrink: 0;
   text-align: right;
+  font-size: 0.82rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.guided-input-wrap {
+  position: relative;
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
 }
 
 .guided-input {
-  flex-grow: 1;
+  width: 100%;
   background: #14060c;
   border: 1px solid var(--ruby-border);
   border-radius: 4px;
-  padding: 0.4rem 0.7rem;
+  padding: 0.45rem 2.2rem 0.45rem 0.75rem;
   color: #fff;
   font-family: var(--font-mono);
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   outline: none;
+  transition: all var(--transition-fast);
 }
 
 .guided-input:focus {
   border-color: var(--accent-neon);
+  box-shadow: 0 0 10px rgba(255, 42, 95, 0.25);
+  background: #18070f;
 }
 
 .guided-input.correct {
-  border-color: var(--color-success);
-  background: rgba(0, 230, 118, 0.1);
+  border-color: var(--color-success) !important;
+  background: rgba(0, 230, 118, 0.08) !important;
 }
 
 .guided-input.wrong {
-  border-color: var(--primary-red);
-  background: rgba(255, 42, 95, 0.1);
+  border-color: var(--primary-red) !important;
+  background: rgba(255, 42, 95, 0.12) !important;
+}
+
+.guided-status-icon {
+  position: absolute;
+  right: 10px;
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+
+.guided-line-hint-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  color: var(--text-muted);
+  padding: 0.35rem 0.55rem;
+  cursor: pointer;
+  font-size: 0.78rem;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+}
+
+.guided-line-hint-btn:hover {
+  color: #fff;
+  border-color: var(--accent-light);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.guided-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-grow: 1;
+}
+
+.guided-progress-text {
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.guided-progress-bar-bg {
+  flex-grow: 1;
+  max-width: 240px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.guided-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-red), var(--color-success));
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.guided-actions {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
 }
 
 /* Solution Pre Code */

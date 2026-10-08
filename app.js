@@ -1448,164 +1448,1163 @@ const COMMANDS_DB = [
 // ==========================================
 // 4. FULL CONFIGURATIONS DATABASE (Tab 3)
 // ==========================================
-const CONFIG_MODELS = {
-  mls1: {
-    id: "mls1",
-    name: "MLS1 (Multilayer Switch 1)",
-    role: "HSRP Active • Prio 105 • Preempt • Track",
-    contextTitle: "MLS1 Konfiguration & Nätverksroll",
-    note: "MLS1 agerar Active router för VLAN 10 med prioritet 105. Har 'standby 10 track g1/0/3' som sänker prioriteten med 10 om ISP-länken går ner.",
-    params: [
-      { key: "Roll i HSRP", val: "Active (Primär Gateway)" },
-      { key: "VLAN 10 Fysisk SVI", val: "192.168.10.2 /24" },
-      { key: "Virtuell Gateway IP", val: "192.168.10.1 (Grupp 10)" },
-      { key: "HSRP Version & Prio", val: "Version 2, Prioritet 105" },
-      { key: "Preemption & Track", val: "Preempt PÅ, Track g1/0/3" },
-      { key: "Länk mot ISP (g1/0/3)", val: "203.0.113.2 /30 (no switchport)" },
-      { key: "Port mot S1 (g1/0/2)", val: "Access VLAN 10" },
-      { key: "Default Route", val: "0.0.0.0 0.0.0.0 203.0.113.1" }
-    ],
-    fullSolution: 
-`MLS1>en
-MLS1#conf t
-MLS1(config)#ip routing
-MLS1(config)#interface g1/0/2
-MLS1(config-if)#description ACCESS_TO_S1_G0/1
-MLS1(config-if)#switchport mode access
-MLS1(config-if)#switchport access vlan 10
-MLS1(config-if)#no shutdown
-MLS1(config-if)#exit
-MLS1(config)#interface vlan 10
-MLS1(config-if)#ip address 192.168.10.2 255.255.255.0
-MLS1(config-if)#standby version 2
-MLS1(config-if)#standby 10 ip 192.168.10.1
-MLS1(config-if)#standby 10 priority 105
-MLS1(config-if)#standby 10 preempt
-MLS1(config-if)#standby 10 track g1/0/3
-MLS1(config-if)#no shutdown
-MLS1(config-if)#exit
-MLS1(config)#interface g1/0/3
-MLS1(config-if)#no switchport
-MLS1(config-if)#ip address 203.0.113.2 255.255.255.252
-MLS1(config-if)#no shutdown
-MLS1(config-if)#exit
-MLS1(config)#ip route 0.0.0.0 0.0.0.0 203.0.113.1`,
-    guidedItems: [
-      { prefix: "MLS1(config)#", target: "ip routing", label: "Aktivera routing globalt" },
-      { prefix: "MLS1(config-if)#", target: "switchport mode access", label: "Sätt g1/0/2 i access-läge" },
-      { prefix: "MLS1(config-if)#", target: "switchport access vlan 10", label: "Tilldela porten till VLAN 10" },
-      { prefix: "MLS1(config-if)#", target: "ip address 192.168.10.2 255.255.255.0", label: "SVI IP på interface vlan 10" },
-      { prefix: "MLS1(config-if)#", target: "standby version 2", label: "HSRP version 2" },
-      { prefix: "MLS1(config-if)#", target: "standby 10 ip 192.168.10.1", label: "HSRP virtuell IP-adress" },
-      { prefix: "MLS1(config-if)#", target: "standby 10 priority 105", label: "Sätt prioritet 105" },
-      { prefix: "MLS1(config-if)#", target: "standby 10 preempt", label: "Aktivera preemption" },
-      { prefix: "MLS1(config-if)#", target: "standby 10 track g1/0/3", label: "Övervaka upplänk g1/0/3" },
-      { prefix: "MLS1(config-if)#", target: "no switchport", label: "Routad port på g1/0/3" },
-      { prefix: "MLS1(config-if)#", target: "ip address 203.0.113.2 255.255.255.252", label: "IP mot ISP på g1/0/3" },
-      { prefix: "MLS1(config)#", target: "ip route 0.0.0.0 0.0.0.0 203.0.113.1", label: "Default route mot ISP" }
-    ]
+const LAB_CONFIGS = {
+  labb6: {
+    id: "labb6",
+    title: "Labb 6: Feltolerant nätverk",
+    url: "https://administration-utrustning.diginto.se/fhrp-koncepten/labb-6-feltolerant-natverk/",
+    badge: "Feltolerant Nätverk",
+    devices: {
+      s1: {
+        id: "s1",
+        name: "S1 (Access-switch)",
+        role: "Access-lager • VLAN 10 & 20 • Rapid-PVST+ • Trunk",
+        roleBadge: "Access Switch",
+        contextTitle: "S1 Konfiguration & Nätverksroll",
+        note: "Access-switch ansluten till elever på Fa0/1 (VLAN 10 ELEVER) och personal på Fa0/2 (VLAN 20 PERSONAL). Portfast och BPDU Guard aktiverade. Rapid-PVST+ med trunk på Gi0/1-2 till DS1 & DS2.",
+        params: [
+          { key: "VLAN 10", val: "ELEVER (Fa0/1 - Access)" },
+          { key: "VLAN 20", val: "PERSONAL (Fa0/2 - Access)" },
+          { key: "STP-läge", val: "spanning-tree mode rapid-pvst" },
+          { key: "Portskydd", val: "spanning-tree portfast, bpduguard enable" },
+          { key: "Trunk-portar", val: "Gi0/1-2 allowed vlan 10,20" }
+        ],
+        steps: [
+          {
+            title: "Steg 1 - Grundkonfiguration",
+            items: [
+              { prefix: "S1>", target: "enable", label: "Aktivera EXEC-läge" },
+              { prefix: "S1#", target: "configure terminal", label: "Gå till konfiguration" },
+              { prefix: "S1(config)#", target: "hostname S1", label: "Sätt hostname S1" },
+              { prefix: "S1(config)#", target: "no ip domain-lookup", label: "Inaktivera DNS-uppslag" },
+              { prefix: "S1(config)#", target: "line console 0", label: "Konsollinje 0" },
+              { prefix: "S1(config-line)#", target: "logging synchronous", label: "Synkron loggning" },
+              { prefix: "S1(config-line)#", target: "exit", label: "Lämna line" }
+            ]
+          },
+          {
+            title: "Steg 2 - VLAN och Accessport-konfiguration",
+            items: [
+              { prefix: "S1(config)#", target: "vlan 10", label: "Skapa VLAN 10" },
+              { prefix: "S1(config-vlan)#", target: "name ELEVER", label: "Namnge VLAN 10 ELEVER" },
+              { prefix: "S1(config-vlan)#", target: "exit", label: "Lämna VLAN 10" },
+              { prefix: "S1(config)#", target: "vlan 20", label: "Skapa VLAN 20" },
+              { prefix: "S1(config-vlan)#", target: "name PERSONAL", label: "Namnge VLAN 20 PERSONAL" },
+              { prefix: "S1(config-vlan)#", target: "exit", label: "Lämna VLAN 20" },
+              { prefix: "S1(config)#", target: "interface fastEthernet 0/1", label: "Port Fa0/1 för elever" },
+              { prefix: "S1(config-if)#", target: "switchport mode access", label: "Sätt access-läge" },
+              { prefix: "S1(config-if)#", target: "switchport access vlan 10", label: "Koppla till VLAN 10" },
+              { prefix: "S1(config-if)#", target: "spanning-tree portfast", label: "Aktivera PortFast" },
+              { prefix: "S1(config-if)#", target: "spanning-tree bpduguard enable", label: "Aktivera BPDU Guard" },
+              { prefix: "S1(config-if)#", target: "exit", label: "Lämna interface" },
+              { prefix: "S1(config)#", target: "interface fastEthernet 0/2", label: "Port Fa0/2 för personal" },
+              { prefix: "S1(config-if)#", target: "switchport mode access", label: "Sätt access-läge" },
+              { prefix: "S1(config-if)#", target: "switchport access vlan 20", label: "Koppla till VLAN 20" },
+              { prefix: "S1(config-if)#", target: "spanning-tree portfast", label: "Aktivera PortFast" },
+              { prefix: "S1(config-if)#", target: "spanning-tree bpduguard enable", label: "Aktivera BPDU Guard" },
+              { prefix: "S1(config-if)#", target: "exit", label: "Lämna interface" }
+            ]
+          },
+          {
+            title: "Steg 3 - Trunk-konfiguration",
+            items: [
+              { prefix: "S1(config)#", target: "spanning-tree mode rapid-pvst", label: "Aktivera Rapid-PVST+" },
+              { prefix: "S1(config)#", target: "interface range gigabitEthernet 0/1-2", label: "Välj trunk-länkar Gi0/1-2" },
+              { prefix: "S1(config-if-range)#", target: "switchport mode trunk", label: "Sätt trunk-läge" },
+              { prefix: "S1(config-if-range)#", target: "switchport trunk allowed vlan 10,20", label: "Tillåt VLAN 10 och 20" },
+              { prefix: "S1(config-if-range)#", target: "no shutdown", label: "Starta portarna" },
+              { prefix: "S1(config-if-range)#", target: "exit", label: "Lämna range" },
+              { prefix: "S1(config)#", target: "end", label: "Avsluta till privileged EXEC" },
+              { prefix: "S1#", target: "write memory", label: "Spara konfigurationen" }
+            ]
+          }
+        ]
+      },
+
+      s2: {
+        id: "s2",
+        name: "S2 (Access-switch)",
+        role: "Access-lager • VLAN 10 & 20 • Rapid-PVST+ • Trunk",
+        roleBadge: "Access Switch",
+        contextTitle: "S2 Konfiguration & Nätverksroll",
+        note: "Access-switch ansluten till elever på Fa0/1 (VLAN 10 ELEVER) och personal på Fa0/2 (VLAN 20 PERSONAL). Portfast & BPDU Guard aktiverade. Rapid-PVST+ med trunk på Gi0/1-2.",
+        params: [
+          { key: "VLAN 10", val: "ELEVER (Fa0/1 - Access)" },
+          { key: "VLAN 20", val: "PERSONAL (Fa0/2 - Access)" },
+          { key: "STP-läge", val: "spanning-tree mode rapid-pvst" },
+          { key: "Portskydd", val: "spanning-tree portfast, bpduguard enable" },
+          { key: "Trunk-portar", val: "Gi0/1-2 allowed vlan 10,20" }
+        ],
+        steps: [
+          {
+            title: "Steg 1 - Grundkonfiguration",
+            items: [
+              { prefix: "S2>", target: "enable", label: "Aktivera EXEC-läge" },
+              { prefix: "S2#", target: "configure terminal", label: "Gå till konfiguration" },
+              { prefix: "S2(config)#", target: "hostname S2", label: "Sätt hostname S2" },
+              { prefix: "S2(config)#", target: "no ip domain-lookup", label: "Inaktivera DNS-uppslag" },
+              { prefix: "S2(config)#", target: "line console 0", label: "Konsollinje 0" },
+              { prefix: "S2(config-line)#", target: "logging synchronous", label: "Synkron loggning" },
+              { prefix: "S2(config-line)#", target: "exit", label: "Lämna line" }
+            ]
+          },
+          {
+            title: "Steg 2 - VLAN och Accessport-konfiguration",
+            items: [
+              { prefix: "S2(config)#", target: "vlan 10", label: "Skapa VLAN 10" },
+              { prefix: "S2(config-vlan)#", target: "name ELEVER", label: "Namnge VLAN 10 ELEVER" },
+              { prefix: "S2(config-vlan)#", target: "exit", label: "Lämna VLAN 10" },
+              { prefix: "S2(config)#", target: "vlan 20", label: "Skapa VLAN 20" },
+              { prefix: "S2(config-vlan)#", target: "name PERSONAL", label: "Namnge VLAN 20 PERSONAL" },
+              { prefix: "S2(config-vlan)#", target: "exit", label: "Lämna VLAN 20" },
+              { prefix: "S2(config)#", target: "interface fastEthernet 0/1", label: "Port Fa0/1 elever" },
+              { prefix: "S2(config-if)#", target: "switchport mode access", label: "Sätt access-läge" },
+              { prefix: "S2(config-if)#", target: "switchport access vlan 10", label: "Koppla till VLAN 10" },
+              { prefix: "S2(config-if)#", target: "spanning-tree portfast", label: "Aktivera PortFast" },
+              { prefix: "S2(config-if)#", target: "spanning-tree bpduguard enable", label: "Aktivera BPDU Guard" },
+              { prefix: "S2(config-if)#", target: "exit", label: "Lämna interface" },
+              { prefix: "S2(config)#", target: "interface fastEthernet 0/2", label: "Port Fa0/2 personal" },
+              { prefix: "S2(config-if)#", target: "switchport mode access", label: "Sätt access-läge" },
+              { prefix: "S2(config-if)#", target: "switchport access vlan 20", label: "Koppla till VLAN 20" },
+              { prefix: "S2(config-if)#", target: "spanning-tree portfast", label: "Aktivera PortFast" },
+              { prefix: "S2(config-if)#", target: "spanning-tree bpduguard enable", label: "Aktivera BPDU Guard" },
+              { prefix: "S2(config-if)#", target: "exit", label: "Lämna interface" }
+            ]
+          },
+          {
+            title: "Steg 3 - Trunk-konfiguration",
+            items: [
+              { prefix: "S2(config)#", target: "spanning-tree mode rapid-pvst", label: "Aktivera Rapid-PVST+" },
+              { prefix: "S2(config)#", target: "interface range gigabitEthernet 0/1-2", label: "Välj trunk-länkar Gi0/1-2" },
+              { prefix: "S2(config-if-range)#", target: "switchport mode trunk", label: "Sätt trunk-läge" },
+              { prefix: "S2(config-if-range)#", target: "switchport trunk allowed vlan 10,20", label: "Tillåt VLAN 10 och 20" },
+              { prefix: "S2(config-if-range)#", target: "no shutdown", label: "Starta portarna" },
+              { prefix: "S2(config-if-range)#", target: "exit", label: "Lämna range" },
+              { prefix: "S2(config)#", target: "end", label: "Avsluta till privileged EXEC" },
+              { prefix: "S2#", target: "write memory", label: "Spara konfigurationen" }
+            ]
+          }
+        ]
+      },
+
+      ds1: {
+        id: "ds1",
+        name: "DS1 (Distributionsswitch)",
+        role: "Root Prim V10 • HSRP Active V10 (110) • LACP • Track Uplink • OSPF",
+        roleBadge: "Root Prim V10 • HSRP 110",
+        contextTitle: "DS1 Konfiguration & Nätverksroll",
+        note: "DS1 är STP Root Bridge för VLAN 10 och sekundär för VLAN 20. HSRP Active för VLAN 10 (Prio 110). Har Object Tracking (track 1) mot Gi1/0/5 som sänker prioriteten med 20 om upplänken till R3 bryts. OSPF Area 0 med passiva VLAN-SVI:er.",
+        params: [
+          { key: "Routing", val: "ip routing aktiverat" },
+          { key: "STP Roller", val: "VLAN 10 root primary, VLAN 20 root secondary" },
+          { key: "EtherChannel", val: "Gi1/0/3-4 -> port-channel 1 (mode active LACP)" },
+          { key: "Trunks mot Access", val: "Gi1/0/1 (S1), Gi1/0/2 (S2)" },
+          { key: "Object Tracking", val: "track 1 interface gigabitEthernet 1/0/5 line-protocol" },
+          { key: "HSRP VLAN 10", val: "10.10.1.2/24 | VIP 10.10.1.1 | Prio 110 | Preempt | Track 1 dec 20" },
+          { key: "HSRP VLAN 20", val: "10.20.1.2/24 | VIP 10.20.1.1 | Prio 100 | Preempt" },
+          { key: "Routad länk R3", val: "Gi1/0/5: 10.1.3.1 /30 (no switchport)" },
+          { key: "OSPF", val: "Process 1, RID 1.1.1.1, Passiva Vlan10/20, Area 0" }
+        ],
+        steps: [
+          {
+            title: "Steg 1 - Grundkonfiguration",
+            items: [
+              { prefix: "DS1>", target: "enable", label: "Aktivera EXEC-läge" },
+              { prefix: "DS1#", target: "configure terminal", label: "Gå till konfiguration" },
+              { prefix: "DS1(config)#", target: "hostname DS1", label: "Sätt hostname DS1" },
+              { prefix: "DS1(config)#", target: "no ip domain-lookup", label: "Inaktivera DNS-uppslag" },
+              { prefix: "DS1(config)#", target: "line console 0", label: "Konsollinje 0" },
+              { prefix: "DS1(config-line)#", target: "logging synchronous", label: "Synkron loggning" },
+              { prefix: "DS1(config-line)#", target: "exit", label: "Lämna line console" }
+            ]
+          },
+          {
+            title: "Steg 2 - VLAN-konfiguration",
+            items: [
+              { prefix: "DS1(config)#", target: "ip routing", label: "Aktivera Inter-VLAN Routing" },
+              { prefix: "DS1(config)#", target: "vlan 10", label: "Skapa VLAN 10" },
+              { prefix: "DS1(config-vlan)#", target: "name ELEVER", label: "Namnge VLAN 10 ELEVER" },
+              { prefix: "DS1(config-vlan)#", target: "exit", label: "Lämna VLAN 10" },
+              { prefix: "DS1(config)#", target: "vlan 20", label: "Skapa VLAN 20" },
+              { prefix: "DS1(config-vlan)#", target: "name PERSONAL", label: "Namnge VLAN 20 PERSONAL" },
+              { prefix: "DS1(config-vlan)#", target: "exit", label: "Lämna VLAN 20" },
+              { prefix: "DS1(config)#", target: "spanning-tree mode rapid-pvst", label: "Aktivera Rapid-PVST+" },
+              { prefix: "DS1(config)#", target: "spanning-tree vlan 10 root primary", label: "Root primary för VLAN 10" },
+              { prefix: "DS1(config)#", target: "spanning-tree vlan 20 root secondary", label: "Root secondary för VLAN 20" }
+            ]
+          },
+          {
+            title: "Steg 3 - Trunking och EtherChannel (LACP)",
+            items: [
+              { prefix: "DS1(config)#", target: "interface gigabitEthernet 1/0/1", label: "Konfigurera port mot S1" },
+              { prefix: "DS1(config-if)#", target: "description Trunk-link to S1", label: "Beskrivning för länk mot S1" },
+              { prefix: "DS1(config-if)#", target: "switchport mode trunk", label: "Sätt trunk-läge" },
+              { prefix: "DS1(config-if)#", target: "switchport trunk allowed vlan 10,20", label: "Tillåt VLAN 10 och 20" },
+              { prefix: "DS1(config-if)#", target: "no shutdown", label: "Aktivera porten" },
+              { prefix: "DS1(config-if)#", target: "exit", label: "Lämna interface" },
+              { prefix: "DS1(config)#", target: "interface gigabitEthernet 1/0/2", label: "Konfigurera port mot S2" },
+              { prefix: "DS1(config-if)#", target: "description Trunk-link to S2", label: "Beskrivning för länk mot S2" },
+              { prefix: "DS1(config-if)#", target: "switchport mode trunk", label: "Sätt trunk-läge" },
+              { prefix: "DS1(config-if)#", target: "switchport trunk allowed vlan 10,20", label: "Tillåt VLAN 10 och 20" },
+              { prefix: "DS1(config-if)#", target: "no shutdown", label: "Aktivera porten" },
+              { prefix: "DS1(config-if)#", target: "exit", label: "Lämna interface" },
+              { prefix: "DS1(config)#", target: "interface range gigabitEthernet 1/0/3-4", label: "Välj länkpar mot DS2" },
+              { prefix: "DS1(config-if-range)#", target: "description Trunk-link to DS2 LACP", label: "Beskrivning för LACP" },
+              { prefix: "DS1(config-if-range)#", target: "shutdown", label: "Stäng ner portarna inför bundling" },
+              { prefix: "DS1(config-if-range)#", target: "channel-group 1 mode active", label: "Bundla i port-channel 1 (LACP active)" },
+              { prefix: "DS1(config-if-range)#", target: "exit", label: "Lämna range" },
+              { prefix: "DS1(config)#", target: "interface port-channel 1", label: "Konfigurera virtuella port-channel 1" },
+              { prefix: "DS1(config-if)#", target: "switchport mode trunk", label: "Sätt port-channel som trunk" },
+              { prefix: "DS1(config-if)#", target: "switchport trunk allowed vlan 10,20", label: "Tillåt VLAN 10,20 på port-channel" },
+              { prefix: "DS1(config-if)#", target: "no shutdown", label: "Aktivera port-channel 1" },
+              { prefix: "DS1(config-if)#", target: "exit", label: "Lämna interface" },
+              { prefix: "DS1(config)#", target: "interface range gigabitEthernet 1/0/3-4", label: "Välj länkpar mot DS2 igen" },
+              { prefix: "DS1(config-if-range)#", target: "no shutdown", label: "Starta Gi1/0/3-4" },
+              { prefix: "DS1(config-if-range)#", target: "exit", label: "Lämna range" }
+            ]
+          },
+          {
+            title: "Steg 4 - Object Tracking (Feltolerans)",
+            items: [
+              { prefix: "DS1(config)#", target: "track 1 interface gigabitEthernet 1/0/5 line-protocol", label: "Övervaka routad upplänk mot R3" }
+            ]
+          },
+          {
+            title: "Steg 5 - HSRP Gateway redundans",
+            items: [
+              { prefix: "DS1(config)#", target: "interface Vlan 10", label: "Konfigurera SVI VLAN 10" },
+              { prefix: "DS1(config-if)#", target: "ip address 10.10.1.2 255.255.255.0", label: "Fysisk IP-adress för VLAN 10" },
+              { prefix: "DS1(config-if)#", target: "standby 10 ip 10.10.1.1", label: "Virtuell gateway IP (Grupp 10)" },
+              { prefix: "DS1(config-if)#", target: "standby 10 priority 110", label: "HSRP prioritet 110 (Aktiv)" },
+              { prefix: "DS1(config-if)#", target: "standby 10 preempt", label: "Aktivera Preemption" },
+              { prefix: "DS1(config-if)#", target: "standby 10 track 1 decrement 20", label: "Sänk prio med 20 vid fel på track 1" },
+              { prefix: "DS1(config-if)#", target: "no shutdown", label: "Starta interface VLAN 10" },
+              { prefix: "DS1(config-if)#", target: "exit", label: "Lämna interface" },
+              { prefix: "DS1(config)#", target: "interface Vlan 20", label: "Konfigurera SVI VLAN 20" },
+              { prefix: "DS1(config-if)#", target: "ip address 10.20.1.2 255.255.255.0", label: "Fysisk IP-adress för VLAN 20" },
+              { prefix: "DS1(config-if)#", target: "standby 20 ip 10.20.1.1", label: "Virtuell gateway IP (Grupp 20)" },
+              { prefix: "DS1(config-if)#", target: "standby 20 priority 100", label: "HSRP prioritet 100 (Standby)" },
+              { prefix: "DS1(config-if)#", target: "standby 20 preempt", label: "Aktivera Preemption" },
+              { prefix: "DS1(config-if)#", target: "no shutdown", label: "Starta interface VLAN 20" },
+              { prefix: "DS1(config-if)#", target: "exit", label: "Lämna interface" },
+              { prefix: "DS1(config)#", target: "interface gigabitEthernet 1/0/5", label: "Konfigurera upplänk mot R3" },
+              { prefix: "DS1(config-if)#", target: "description Routad uplink till R3", label: "Beskrivning" },
+              { prefix: "DS1(config-if)#", target: "no switchport", label: "Gör till routad Layer 3-port" },
+              { prefix: "DS1(config-if)#", target: "ip address 10.1.3.1 255.255.255.252", label: "IP mot R3 (/30)" },
+              { prefix: "DS1(config-if)#", target: "no shutdown", label: "Starta porten" },
+              { prefix: "DS1(config-if)#", target: "exit", label: "Lämna interface" }
+            ]
+          },
+          {
+            title: "Steg 6 - Routing med OSPF",
+            items: [
+              { prefix: "DS1(config)#", target: "router ospf 1", label: "Starta OSPF process 1" },
+              { prefix: "DS1(config-router)#", target: "router-id 1.1.1.1", label: "Sätt Router-ID 1.1.1.1" },
+              { prefix: "DS1(config-router)#", target: "passive-interface Vlan10", label: "Passivt gränssnitt VLAN 10" },
+              { prefix: "DS1(config-router)#", target: "passive-interface Vlan20", label: "Passivt gränssnitt VLAN 20" },
+              { prefix: "DS1(config-router)#", target: "network 10.1.3.0 0.0.0.3 area 0", label: "Annonsera upplänksnät mot R3" },
+              { prefix: "DS1(config-router)#", target: "network 10.10.1.0 0.0.0.255 area 0", label: "Annonsera VLAN 10 nätverk" },
+              { prefix: "DS1(config-router)#", target: "network 10.20.1.0 0.0.0.255 area 0", label: "Annonsera VLAN 20 nätverk" },
+              { prefix: "DS1(config-router)#", target: "exit", label: "Lämna router config" },
+              { prefix: "DS1(config)#", target: "end", label: "Avsluta till privileged EXEC" },
+              { prefix: "DS1#", target: "write memory", label: "Spara konfigurationen" }
+            ]
+          }
+        ]
+      },
+
+      ds2: {
+        id: "ds2",
+        name: "DS2 (Distributionsswitch)",
+        role: "Root Prim V20 • HSRP Active V20 (110) • LACP • Track Uplink • OSPF",
+        roleBadge: "Root Prim V20 • HSRP 110",
+        contextTitle: "DS2 Konfiguration & Nätverksroll",
+        note: "DS2 är STP Root Bridge för VLAN 20 och sekundär för VLAN 10. HSRP Active för VLAN 20 (Prio 110). Har Object Tracking (track 1) mot Gi1/0/5 mot R4 som sänker HSRP-prioriteten med 20 vid avbrott. OSPF Area 0 med passiva VLAN-SVI:er.",
+        params: [
+          { key: "Routing", val: "ip routing aktiverat" },
+          { key: "STP Roller", val: "VLAN 10 root secondary, VLAN 20 root primary" },
+          { key: "EtherChannel", val: "Gi1/0/3-4 -> port-channel 1 (mode active LACP)" },
+          { key: "Trunks mot Access", val: "Gi1/0/1 (S2), Gi1/0/2 (S1)" },
+          { key: "Object Tracking", val: "track 1 interface gigabitEthernet 1/0/5 line-protocol" },
+          { key: "HSRP VLAN 10", val: "10.10.1.3/24 | VIP 10.10.1.1 | Prio 100 | Preempt" },
+          { key: "HSRP VLAN 20", val: "10.20.1.3/24 | VIP 10.20.1.1 | Prio 110 | Preempt | Track 1 dec 20" },
+          { key: "Routad länk R4", val: "Gi1/0/5: 10.1.4.1 /30 (no switchport)" },
+          { key: "OSPF", val: "Process 1, RID 2.2.2.2, Passiva Vlan10/20, Area 0" }
+        ],
+        steps: [
+          {
+            title: "Steg 1 - Grundkonfiguration",
+            items: [
+              { prefix: "DS2>", target: "enable", label: "Aktivera EXEC-läge" },
+              { prefix: "DS2#", target: "configure terminal", label: "Gå till konfiguration" },
+              { prefix: "DS2(config)#", target: "hostname DS2", label: "Sätt hostname DS2" },
+              { prefix: "DS2(config)#", target: "no ip domain-lookup", label: "Inaktivera DNS-uppslag" },
+              { prefix: "DS2(config)#", target: "line console 0", label: "Konsollinje 0" },
+              { prefix: "DS2(config-line)#", target: "logging synchronous", label: "Synkron loggning" },
+              { prefix: "DS2(config-line)#", target: "exit", label: "Lämna line console" }
+            ]
+          },
+          {
+            title: "Steg 2 - VLAN-konfiguration",
+            items: [
+              { prefix: "DS2(config)#", target: "ip routing", label: "Aktivera Inter-VLAN Routing" },
+              { prefix: "DS2(config)#", target: "vlan 10", label: "Skapa VLAN 10" },
+              { prefix: "DS2(config-vlan)#", target: "name ELEVER", label: "Namnge VLAN 10 ELEVER" },
+              { prefix: "DS2(config-vlan)#", target: "exit", label: "Lämna VLAN 10" },
+              { prefix: "DS2(config)#", target: "vlan 20", label: "Skapa VLAN 20" },
+              { prefix: "DS2(config-vlan)#", target: "name PERSONAL", label: "Namnge VLAN 20 PERSONAL" },
+              { prefix: "DS2(config-vlan)#", target: "exit", label: "Lämna VLAN 20" },
+              { prefix: "DS2(config)#", target: "spanning-tree mode rapid-pvst", label: "Aktivera Rapid-PVST+" },
+              { prefix: "DS2(config)#", target: "spanning-tree vlan 10 root secondary", label: "Root secondary för VLAN 10" },
+              { prefix: "DS2(config)#", target: "spanning-tree vlan 20 root primary", label: "Root primary för VLAN 20" }
+            ]
+          },
+          {
+            title: "Steg 3 - Trunking och EtherChannel (LACP)",
+            items: [
+              { prefix: "DS2(config)#", target: "interface gigabitEthernet 1/0/1", label: "Konfigurera port mot S2" },
+              { prefix: "DS2(config-if)#", target: "description Trunk-link to S2", label: "Beskrivning för länk mot S2" },
+              { prefix: "DS2(config-if)#", target: "switchport mode trunk", label: "Sätt trunk-läge" },
+              { prefix: "DS2(config-if)#", target: "switchport trunk allowed vlan 10,20", label: "Tillåt VLAN 10 och 20" },
+              { prefix: "DS2(config-if)#", target: "no shutdown", label: "Aktivera porten" },
+              { prefix: "DS2(config-if)#", target: "exit", label: "Lämna interface" },
+              { prefix: "DS2(config)#", target: "interface gigabitEthernet 1/0/2", label: "Konfigurera port mot S1" },
+              { prefix: "DS2(config-if)#", target: "description Trunk-link to S1", label: "Beskrivning för länk mot S1" },
+              { prefix: "DS2(config-if)#", target: "switchport mode trunk", label: "Sätt trunk-läge" },
+              { prefix: "DS2(config-if)#", target: "switchport trunk allowed vlan 10,20", label: "Tillåt VLAN 10 och 20" },
+              { prefix: "DS2(config-if)#", target: "no shutdown", label: "Aktivera porten" },
+              { prefix: "DS2(config-if)#", target: "exit", label: "Lämna interface" },
+              { prefix: "DS2(config)#", target: "interface range gigabitEthernet 1/0/3-4", label: "Välj länkpar mot DS1" },
+              { prefix: "DS2(config-if-range)#", target: "description Trunk-link to DS1 LACP", label: "Beskrivning för LACP" },
+              { prefix: "DS2(config-if-range)#", target: "shutdown", label: "Stäng ner portarna inför bundling" },
+              { prefix: "DS2(config-if-range)#", target: "channel-group 1 mode active", label: "Bundla i port-channel 1 (LACP active)" },
+              { prefix: "DS2(config-if-range)#", target: "exit", label: "Lämna range" },
+              { prefix: "DS2(config)#", target: "interface port-channel 1", label: "Konfigurera virtuella port-channel 1" },
+              { prefix: "DS2(config-if)#", target: "switchport mode trunk", label: "Sätt port-channel som trunk" },
+              { prefix: "DS2(config-if)#", target: "switchport trunk allowed vlan 10,20", label: "Tillåt VLAN 10 och 20 på port-channel" },
+              { prefix: "DS2(config-if)#", target: "no shutdown", label: "Aktivera port-channel 1" },
+              { prefix: "DS2(config-if)#", target: "exit", label: "Lämna interface" },
+              { prefix: "DS2(config)#", target: "interface range gigabitEthernet 1/0/3-4", label: "Välj länkpar mot DS1 igen" },
+              { prefix: "DS2(config-if-range)#", target: "no shutdown", label: "Starta Gi1/0/3-4" },
+              { prefix: "DS2(config-if-range)#", target: "exit", label: "Lämna range" }
+            ]
+          },
+          {
+            title: "Steg 4 - Object Tracking (Feltolerans)",
+            items: [
+              { prefix: "DS2(config)#", target: "track 1 interface gigabitEthernet 1/0/5 line-protocol", label: "Övervaka routad upplänk mot R4" }
+            ]
+          },
+          {
+            title: "Steg 5 - HSRP Gateway redundans",
+            items: [
+              { prefix: "DS2(config)#", target: "interface Vlan 10", label: "Konfigurera SVI VLAN 10" },
+              { prefix: "DS2(config-if)#", target: "ip address 10.10.1.3 255.255.255.0", label: "Fysisk IP-adress för VLAN 10" },
+              { prefix: "DS2(config-if)#", target: "standby 10 ip 10.10.1.1", label: "Virtuell gateway IP (Grupp 10)" },
+              { prefix: "DS2(config-if)#", target: "standby 10 priority 100", label: "HSRP prioritet 100 (Standby)" },
+              { prefix: "DS2(config-if)#", target: "standby 10 preempt", label: "Aktivera Preemption" },
+              { prefix: "DS2(config-if)#", target: "no shutdown", label: "Starta interface VLAN 10" },
+              { prefix: "DS2(config-if)#", target: "exit", label: "Lämna interface" },
+              { prefix: "DS2(config)#", target: "interface Vlan 20", label: "Konfigurera SVI VLAN 20" },
+              { prefix: "DS2(config-if)#", target: "ip address 10.20.1.3 255.255.255.0", label: "Fysisk IP-adress för VLAN 20" },
+              { prefix: "DS2(config-if)#", target: "standby 20 ip 10.20.1.1", label: "Virtuell gateway IP (Grupp 20)" },
+              { prefix: "DS2(config-if)#", target: "standby 20 priority 110", label: "HSRP prioritet 110 (Aktiv)" },
+              { prefix: "DS2(config-if)#", target: "standby 20 preempt", label: "Aktivera Preemption" },
+              { prefix: "DS2(config-if)#", target: "standby 20 track 1 decrement 20", label: "Sänk prio med 20 vid fel på track 1" },
+              { prefix: "DS2(config-if)#", target: "no shutdown", label: "Starta interface VLAN 20" },
+              { prefix: "DS2(config-if)#", target: "exit", label: "Lämna interface" },
+              { prefix: "DS2(config)#", target: "interface gigabitEthernet 1/0/5", label: "Konfigurera upplänk mot R4" },
+              { prefix: "DS2(config-if)#", target: "description Routad uplink till R4", label: "Beskrivning" },
+              { prefix: "DS2(config-if)#", target: "no switchport", label: "Gör till routad Layer 3-port" },
+              { prefix: "DS2(config-if)#", target: "ip address 10.1.4.1 255.255.255.252", label: "IP mot R4 (/30)" },
+              { prefix: "DS2(config-if)#", target: "no shutdown", label: "Starta porten" },
+              { prefix: "DS2(config-if)#", target: "exit", label: "Lämna interface" }
+            ]
+          },
+          {
+            title: "Steg 6 - Routing med OSPF",
+            items: [
+              { prefix: "DS2(config)#", target: "router ospf 1", label: "Starta OSPF process 1" },
+              { prefix: "DS2(config-router)#", target: "router-id 2.2.2.2", label: "Sätt Router-ID 2.2.2.2" },
+              { prefix: "DS2(config-router)#", target: "passive-interface Vlan10", label: "Passivt gränssnitt VLAN 10" },
+              { prefix: "DS2(config-router)#", target: "passive-interface Vlan20", label: "Passivt gränssnitt VLAN 20" },
+              { prefix: "DS2(config-router)#", target: "network 10.1.4.0 0.0.0.3 area 0", label: "Annonsera upplänksnät mot R4" },
+              { prefix: "DS2(config-router)#", target: "network 10.10.1.0 0.0.0.255 area 0", label: "Annonsera VLAN 10 nätverk" },
+              { prefix: "DS2(config-router)#", target: "network 10.20.1.0 0.0.0.255 area 0", label: "Annonsera VLAN 20 nätverk" },
+              { prefix: "DS2(config-router)#", target: "exit", label: "Lämna router config" },
+              { prefix: "DS2(config)#", target: "end", label: "Avsluta till privileged EXEC" },
+              { prefix: "DS2#", target: "write memory", label: "Spara konfigurationen" }
+            ]
+          }
+        ]
+      },
+
+      r3: {
+        id: "r3",
+        name: "R3 (Core-router)",
+        role: "Core/Routing • HSRP Active (VIP 10.32.1.1 Prio 110) • Track g0/0 dec 20 • OSPF",
+        roleBadge: "HSRP Active • Prio 110",
+        contextTitle: "R3 Konfiguration & Nätverksroll",
+        note: "Core-router ansluten till distributionslagret (DS1) via Gi0/0 och till serversegmentet via Gi0/1. Agerar HSRP Active (VIP 10.32.1.1, Prio 110). Övervakar länk Gi0/0 mot DS1 (sänker prio med 20). OSPF Area 0.",
+        params: [
+          { key: "Länk mot DS1", val: "Gi0/0: 10.1.3.2 /30" },
+          { key: "HSRP Länk (Gi0/1)", val: "10.32.1.2/24 | VIP 10.32.1.1 | Prio 110 | Preempt" },
+          { key: "Object Tracking", val: "track 1 interface gigabitEthernet 0/0 line-protocol" },
+          { key: "OSPF", val: "router ospf 1, RID 3.3.3.3, Area 0" }
+        ],
+        steps: [
+          {
+            title: "Steg 1 - Grundkonfiguration",
+            items: [
+              { prefix: "R3>", target: "enable", label: "Aktivera EXEC-läge" },
+              { prefix: "R3#", target: "configure terminal", label: "Gå till konfiguration" },
+              { prefix: "R3(config)#", target: "hostname R3", label: "Sätt hostname R3" },
+              { prefix: "R3(config)#", target: "no ip domain-lookup", label: "Inaktivera DNS-uppslag" },
+              { prefix: "R3(config)#", target: "line console 0", label: "Konsollinje 0" },
+              { prefix: "R3(config-line)#", target: "logging synchronous", label: "Synkron loggning" },
+              { prefix: "R3(config-line)#", target: "exit", label: "Lämna line console" }
+            ]
+          },
+          {
+            title: "Steg 2 - Object Tracking (Feltolerans)",
+            items: [
+              { prefix: "R3(config)#", target: "track 1 interface gigabitEthernet 0/0 line-protocol", label: "Övervaka routad port mot DS1" },
+              { prefix: "R3(config)#", target: "interface gigabitEthernet 0/0", label: "Konfigurera port mot DS1" },
+              { prefix: "R3(config-if)#", target: "description Routed-link to DS1", label: "Beskrivning" },
+              { prefix: "R3(config-if)#", target: "ip address 10.1.3.2 255.255.255.252", label: "IP mot DS1 (/30)" },
+              { prefix: "R3(config-if)#", target: "no shutdown", label: "Starta porten" },
+              { prefix: "R3(config-if)#", target: "exit", label: "Lämna interface" }
+            ]
+          },
+          {
+            title: "Steg 3 - HSRP Gateway redundans",
+            items: [
+              { prefix: "R3(config)#", target: "interface gigabitEthernet 0/1", label: "Konfigurera serverlänk Gi0/1" },
+              { prefix: "R3(config-if)#", target: "description HSRP-link", label: "Beskrivning" },
+              { prefix: "R3(config-if)#", target: "ip address 10.32.1.2 255.255.255.0", label: "Fysisk IP-adress" },
+              { prefix: "R3(config-if)#", target: "standby 10 ip 10.32.1.1", label: "Virtuell gateway IP" },
+              { prefix: "R3(config-if)#", target: "standby 10 priority 110", label: "HSRP prioritet 110 (Aktiv)" },
+              { prefix: "R3(config-if)#", target: "standby 10 preempt", label: "Aktivera Preemption" },
+              { prefix: "R3(config-if)#", target: "standby 10 track 1 decrement 20", label: "Sänk prio med 20 vid länkfel" },
+              { prefix: "R3(config-if)#", target: "no shutdown", label: "Starta porten" },
+              { prefix: "R3(config-if)#", target: "exit", label: "Lämna interface" }
+            ]
+          },
+          {
+            title: "Steg 4 - Routing med OSPF",
+            items: [
+              { prefix: "R3(config)#", target: "router ospf 1", label: "Starta OSPF process 1" },
+              { prefix: "R3(config-router)#", target: "router-id 3.3.3.3", label: "Sätt Router-ID 3.3.3.3" },
+              { prefix: "R3(config-router)#", target: "network 10.1.3.0 0.0.0.3 area 0", label: "Annonsera länk mot DS1" },
+              { prefix: "R3(config-router)#", target: "network 10.32.1.0 0.0.0.255 area 0", label: "Annonsera servernätverk" },
+              { prefix: "R3(config-router)#", target: "exit", label: "Lämna router config" },
+              { prefix: "R3(config)#", target: "end", label: "Avsluta till privileged EXEC" },
+              { prefix: "R3#", target: "write memory", label: "Spara konfigurationen" }
+            ]
+          }
+        ]
+      },
+
+      r4: {
+        id: "r4",
+        name: "R4 (Core-router)",
+        role: "Core/Routing • HSRP Standby (VIP 10.32.1.1 Prio 100) • Track g0/0 dec 20 • OSPF",
+        roleBadge: "HSRP Standby • Prio 100",
+        contextTitle: "R4 Konfiguration & Nätverksroll",
+        note: "Core-router ansluten till distributionslagret (DS2) via Gi0/0 och till serversegmentet via Gi0/1. Agerar HSRP Standby (VIP 10.32.1.1, Prio 100). Övervakar länk Gi0/0 mot DS2. OSPF Area 0.",
+        params: [
+          { key: "Länk mot DS2", val: "Gi0/0: 10.1.4.2 /30" },
+          { key: "HSRP Länk (Gi0/1)", val: "10.32.1.3/24 | VIP 10.32.1.1 | Prio 100 | Preempt" },
+          { key: "Object Tracking", val: "track 1 interface gigabitEthernet 0/0 line-protocol" },
+          { key: "OSPF", val: "router ospf 1, RID 4.4.4.4, Area 0" }
+        ],
+        steps: [
+          {
+            title: "Steg 1 - Grundkonfiguration",
+            items: [
+              { prefix: "R4>", target: "enable", label: "Aktivera EXEC-läge" },
+              { prefix: "R4#", target: "configure terminal", label: "Gå till konfiguration" },
+              { prefix: "R4(config)#", target: "hostname R4", label: "Sätt hostname R4" },
+              { prefix: "R4(config)#", target: "no ip domain-lookup", label: "Inaktivera DNS-uppslag" },
+              { prefix: "R4(config)#", target: "line console 0", label: "Konsollinje 0" },
+              { prefix: "R4(config-line)#", target: "logging synchronous", label: "Synkron loggning" },
+              { prefix: "R4(config-line)#", target: "exit", label: "Lämna line console" }
+            ]
+          },
+          {
+            title: "Steg 2 - Object Tracking (Feltolerans)",
+            items: [
+              { prefix: "R4(config)#", target: "track 1 interface gigabitEthernet 0/0 line-protocol", label: "Övervaka routad port mot DS2" },
+              { prefix: "R4(config)#", target: "interface gigabitEthernet 0/0", label: "Konfigurera port mot DS2" },
+              { prefix: "R4(config-if)#", target: "description Routed-link to DS2", label: "Beskrivning" },
+              { prefix: "R4(config-if)#", target: "ip address 10.1.4.2 255.255.255.252", label: "IP mot DS2 (/30)" },
+              { prefix: "R4(config-if)#", target: "no shutdown", label: "Starta porten" },
+              { prefix: "R4(config-if)#", target: "exit", label: "Lämna interface" }
+            ]
+          },
+          {
+            title: "Steg 3 - HSRP Gateway redundans",
+            items: [
+              { prefix: "R4(config)#", target: "interface gigabitEthernet 0/1", label: "Konfigurera serverlänk Gi0/1" },
+              { prefix: "R4(config-if)#", target: "description HSRP-link", label: "Beskrivning" },
+              { prefix: "R4(config-if)#", target: "ip address 10.32.1.3 255.255.255.0", label: "Fysisk IP-adress" },
+              { prefix: "R4(config-if)#", target: "standby 10 ip 10.32.1.1", label: "Virtuell gateway IP" },
+              { prefix: "R4(config-if)#", target: "standby 10 priority 100", label: "HSRP prioritet 100 (Standby)" },
+              { prefix: "R4(config-if)#", target: "standby 10 preempt", label: "Aktivera Preemption" },
+              { prefix: "R4(config-if)#", target: "standby 10 track 1 decrement 20", label: "Sänk prio med 20 vid länkfel" },
+              { prefix: "R4(config-if)#", target: "no shutdown", label: "Starta porten" },
+              { prefix: "R4(config-if)#", target: "exit", label: "Lämna interface" }
+            ]
+          },
+          {
+            title: "Steg 4 - Routing med OSPF",
+            items: [
+              { prefix: "R4(config)#", target: "router ospf 1", label: "Starta OSPF process 1" },
+              { prefix: "R4(config-router)#", target: "router-id 4.4.4.4", label: "Sätt Router-ID 4.4.4.4" },
+              { prefix: "R4(config-router)#", target: "network 10.1.4.0 0.0.0.3 area 0", label: "Annonsera länk mot DS2" },
+              { prefix: "R4(config-router)#", target: "network 10.32.1.0 0.0.0.255 area 0", label: "Annonsera servernätverk" },
+              { prefix: "R4(config-router)#", target: "exit", label: "Lämna router config" },
+              { prefix: "R4(config)#", target: "end", label: "Avsluta till privileged EXEC" },
+              { prefix: "R4#", target: "write memory", label: "Spara konfigurationen" }
+            ]
+          }
+        ]
+      }
+    }
   },
 
-  mls2: {
-    id: "mls2",
-    name: "MLS2 (Multilayer Switch 2)",
-    role: "HSRP Standby • Prio 100 • Preempt",
-    contextTitle: "MLS2 Konfiguration & Nätverksroll",
-    note: "MLS2 agerar Standby router med standardprioritet 100. Har även 'standby 10 preempt' och tar över om MLS1:s prioritet sjunker under 100 eller om MLS1 kraschar.",
-    params: [
-      { key: "Roll i HSRP", val: "Standby (Reserv Gateway)" },
-      { key: "VLAN 10 Fysisk SVI", val: "192.168.10.3 /24" },
-      { key: "Virtuell Gateway IP", val: "192.168.10.1 (Grupp 10)" },
-      { key: "HSRP Version & Prio", val: "Version 2, Prioritet 100 (Default)" },
-      { key: "Preemption", val: "standby 10 preempt" },
-      { key: "Länk mot ISP (g1/0/4)", val: "203.0.113.6 /30 (no switchport)" },
-      { key: "Port mot S1 (g1/0/2)", val: "Access VLAN 10" },
-      { key: "Default Route", val: "0.0.0.0 0.0.0.0 203.0.113.5" }
-    ],
-    fullSolution:
-`MLS2>en
-MLS2#conf t
-MLS2(config)#ip routing
-MLS2(config)#interface g1/0/2
-MLS2(config-if)#description ACCESS_TO_S1_G0/2
-MLS2(config-if)#switchport mode access
-MLS2(config-if)#switchport access vlan 10
-MLS2(config-if)#no shutdown
-MLS2(config-if)#exit
-MLS2(config)#interface vlan 10
-MLS2(config-if)#ip address 192.168.10.3 255.255.255.0
-MLS2(config-if)#standby version 2
-MLS2(config-if)#standby 10 ip 192.168.10.1
-MLS2(config-if)#standby 10 priority 100
-MLS2(config-if)#standby 10 preempt
-MLS2(config-if)#no shutdown
-MLS2(config-if)#exit
-MLS2(config)#interface g1/0/4
-MLS2(config-if)#no switchport
-MLS2(config-if)#ip address 203.0.113.6 255.255.255.252
-MLS2(config-if)#no shutdown
-MLS2(config-if)#exit
-MLS2(config)#ip route 0.0.0.0 0.0.0.0 203.0.113.5`,
-    guidedItems: [
-      { prefix: "MLS2(config)#", target: "ip routing", label: "Aktivera routing globalt" },
-      { prefix: "MLS2(config-if)#", target: "switchport mode access", label: "Sätt g1/0/2 i access-läge" },
-      { prefix: "MLS2(config-if)#", target: "switchport access vlan 10", label: "Tilldela porten till VLAN 10" },
-      { prefix: "MLS2(config-if)#", target: "ip address 192.168.10.3 255.255.255.0", label: "SVI IP på interface vlan 10" },
-      { prefix: "MLS2(config-if)#", target: "standby version 2", label: "HSRP version 2" },
-      { prefix: "MLS2(config-if)#", target: "standby 10 ip 192.168.10.1", label: "Virtuell IP 192.168.10.1" },
-      { prefix: "MLS2(config-if)#", target: "standby 10 priority 100", label: "Prioritet 100" },
-      { prefix: "MLS2(config-if)#", target: "standby 10 preempt", label: "Aktivera preemption" },
-      { prefix: "MLS2(config-if)#", target: "no switchport", label: "Routad port på g1/0/4" },
-      { prefix: "MLS2(config-if)#", target: "ip address 203.0.113.6 255.255.255.252", label: "IP mot ISP på g1/0/4" },
-      { prefix: "MLS2(config)#", target: "ip route 0.0.0.0 0.0.0.0 203.0.113.5", label: "Default route mot ISP" }
-    ]
-  },
+  labb7: {
+    id: "labb7",
+    title: "Labb 7: Redundansteknik samverkan",
+    url: "https://administration-utrustning.diginto.se/fhrp-koncepten/labb-7-redundansteknik-samverkan/",
+    badge: "Redundansteknik Samverkan",
+    devices: {
+      s1: {
+        id: "s1",
+        name: "S1 (Access-switch)",
+        role: "Access-lager • VLAN DATA10 & DATA20 • Rapid-PVST+ • Trunk",
+        roleBadge: "Access Switch",
+        contextTitle: "S1 Konfiguration & Nätverksroll",
+        note: "Access-switch med VLAN 10 (DATA10) och VLAN 20 (DATA20). Portfast & BPDU Guard på Fa0/1 (VLAN 10). Trunk till DS1 & DS2 på Gi0/1-2.",
+        params: [
+          { key: "VLAN 10", val: "DATA10 (Fa0/1 - Access)" },
+          { key: "VLAN 20", val: "DATA20" },
+          { key: "STP-läge", val: "spanning-tree mode rapid-pvst" },
+          { key: "Portskydd", val: "spanning-tree portfast, bpduguard enable" },
+          { key: "Trunk-portar", val: "Gi0/1-2 allowed vlan 10,20" }
+        ],
+        steps: [
+          {
+            title: "Steg 1 - Grundkonfiguration",
+            items: [
+              { prefix: "S1>", target: "enable", label: "Aktivera EXEC-läge" },
+              { prefix: "S1#", target: "configure terminal", label: "Gå till konfiguration" },
+              { prefix: "S1(config)#", target: "hostname S1", label: "Sätt hostname S1" },
+              { prefix: "S1(config)#", target: "no ip domain-lookup", label: "Inaktivera DNS-uppslag" },
+              { prefix: "S1(config)#", target: "line console 0", label: "Konsollinje 0" },
+              { prefix: "S1(config-line)#", target: "logging synchronous", label: "Synkron loggning" },
+              { prefix: "S1(config-line)#", target: "exit", label: "Lämna line" }
+            ]
+          },
+          {
+            title: "Steg 2 - VLAN och Accessport-konfiguration",
+            items: [
+              { prefix: "S1(config)#", target: "vlan 10", label: "Skapa VLAN 10" },
+              { prefix: "S1(config-vlan)#", target: "name DATA10", label: "Namnge VLAN 10 DATA10" },
+              { prefix: "S1(config-vlan)#", target: "exit", label: "Lämna VLAN 10" },
+              { prefix: "S1(config)#", target: "vlan 20", label: "Skapa VLAN 20" },
+              { prefix: "S1(config-vlan)#", target: "name DATA20", label: "Namnge VLAN 20 DATA20" },
+              { prefix: "S1(config-vlan)#", target: "exit", label: "Lämna VLAN 20" },
+              { prefix: "S1(config)#", target: "interface fastEthernet 0/1", label: "Port Fa0/1 för klienter" },
+              { prefix: "S1(config-if)#", target: "switchport mode access", label: "Sätt access-läge" },
+              { prefix: "S1(config-if)#", target: "switchport access vlan 10", label: "Koppla till VLAN 10" },
+              { prefix: "S1(config-if)#", target: "spanning-tree portfast", label: "Aktivera PortFast" },
+              { prefix: "S1(config-if)#", target: "spanning-tree bpduguard enable", label: "Aktivera BPDU Guard" },
+              { prefix: "S1(config-if)#", target: "exit", label: "Lämna interface" }
+            ]
+          },
+          {
+            title: "Steg 3 - Trunk-konfiguration",
+            items: [
+              { prefix: "S1(config)#", target: "spanning-tree mode rapid-pvst", label: "Aktivera Rapid-PVST+" },
+              { prefix: "S1(config)#", target: "interface range gigabitEthernet 0/1-2", label: "Välj trunk-länkar Gi0/1-2" },
+              { prefix: "S1(config-if-range)#", target: "description Trunk to DS1 and DS2", label: "Beskrivning för trunk" },
+              { prefix: "S1(config-if-range)#", target: "switchport mode trunk", label: "Sätt trunk-läge" },
+              { prefix: "S1(config-if-range)#", target: "switchport trunk allowed vlan 10,20", label: "Tillåt VLAN 10 och 20" },
+              { prefix: "S1(config-if-range)#", target: "no shutdown", label: "Starta portarna" },
+              { prefix: "S1(config-if-range)#", target: "exit", label: "Lämna range" },
+              { prefix: "S1(config)#", target: "end", label: "Avsluta till privileged EXEC" },
+              { prefix: "S1#", target: "write memory", label: "Spara konfigurationen" }
+            ]
+          }
+        ]
+      },
 
-  isp: {
-    id: "isp",
-    name: "ISP (Internet Service Provider Switch)",
-    role: "L3 Internet Gateway • Floating Static Route",
-    contextTitle: "ISP Konfiguration & Nätverksroll",
-    note: "ISP har statisk rutt till VLAN 10 (192.168.10.0/24) via MLS1 (203.0.113.2) och en flytande statisk rutt (floating static route) med distans 5 via MLS2 (203.0.113.6).",
-    params: [
-      { key: "Hostname", val: "ISP" },
-      { key: "Routing Status", val: "ip routing aktiverat" },
-      { key: "Länk mot MLS1 (g1/0/3)", val: "203.0.113.1 /30" },
-      { key: "Länk mot MLS2 (g1/0/4)", val: "203.0.113.5 /30" },
-      { key: "Servernätverk (g1/0/24)", val: "SERVER_NETWORK (8.8.8.8/28)" },
-      { key: "Primär statisk rutt", val: "192.168.10.0/24 via 203.0.113.2 (AD 1)" },
-      { key: "Floating backup rutt", val: "192.168.10.0/24 via 203.0.113.6 AD 5" }
-    ],
-    fullSolution:
-`Switch>enable
-Switch#configure terminal
-Switch(config)#hostname ISP
-ISP(config)#ip routing
-ISP(config)#interface g1/0/3
-ISP(config-if)#description ROUTED_LINK_TO_MLS1
-ISP(config-if)#no switchport
-ISP(config-if)#ip address 203.0.113.1 255.255.255.252
-ISP(config-if)#no shutdown
-ISP(config-if)#exit
-ISP(config)#interface g1/0/24
-ISP(config-if)#description SERVER_NETWORK
-ISP(config-if)#no shutdown
-ISP(config-if)#exit
-ISP(config)#ip route 192.168.10.0 255.255.255.0 203.0.113.2
-ISP(config)#ip route 192.168.10.0 255.255.255.0 203.0.113.6 5
-ISP(config)#end
-ISP#copy running-config startup-config`,
-    guidedItems: [
-      { prefix: "Switch(config)#", target: "hostname ISP", label: "Byt hostname till ISP" },
-      { prefix: "ISP(config)#", target: "ip routing", label: "Aktivera ip routing" },
-      { prefix: "ISP(config-if)#", target: "no switchport", label: "no switchport på g1/0/3" },
-      { prefix: "ISP(config-if)#", target: "ip address 203.0.113.1 255.255.255.252", label: "IP mot MLS1 på g1/0/3" },
-      { prefix: "ISP(config)#", target: "ip route 192.168.10.0 255.255.255.0 203.0.113.2", label: "Primär statisk rutt via MLS1" },
-      { prefix: "ISP(config)#", target: "ip route 192.168.10.0 255.255.255.0 203.0.113.6 5", label: "Floating static route via MLS2 med AD 5" },
-      { prefix: "ISP#", target: "copy running-config startup-config", label: "Spara konfigurationen" }
-    ]
+      s2: {
+        id: "s2",
+        name: "S2 (Access-switch)",
+        role: "Access-lager • VLAN DATA10 & DATA20 • Rapid-PVST+ • Trunk",
+        roleBadge: "Access Switch",
+        contextTitle: "S2 Konfiguration & Nätverksroll",
+        note: "Access-switch med VLAN 10 (DATA10) och VLAN 20 (DATA20). Portfast & BPDU Guard på Fa0/1 (VLAN 20). Trunk till DS1 & DS2 på Gi0/1-2.",
+        params: [
+          { key: "VLAN 10", val: "DATA10" },
+          { key: "VLAN 20", val: "DATA20 (Fa0/1 - Access)" },
+          { key: "STP-läge", val: "spanning-tree mode rapid-pvst" },
+          { key: "Portskydd", val: "spanning-tree portfast, bpduguard enable" },
+          { key: "Trunk-portar", val: "Gi0/1-2 allowed vlan 10,20" }
+        ],
+        steps: [
+          {
+            title: "Steg 1 - Grundkonfiguration",
+            items: [
+              { prefix: "S2>", target: "enable", label: "Aktivera EXEC-läge" },
+              { prefix: "S2#", target: "configure terminal", label: "Gå till konfiguration" },
+              { prefix: "S2(config)#", target: "hostname S2", label: "Sätt hostname S2" },
+              { prefix: "S2(config)#", target: "no ip domain-lookup", label: "Inaktivera DNS-uppslag" },
+              { prefix: "S2(config)#", target: "line console 0", label: "Konsollinje 0" },
+              { prefix: "S2(config-line)#", target: "logging synchronous", label: "Synkron loggning" },
+              { prefix: "S2(config-line)#", target: "exit", label: "Lämna line" }
+            ]
+          },
+          {
+            title: "Steg 2 - VLAN och Accessport-konfiguration",
+            items: [
+              { prefix: "S2(config)#", target: "vlan 10", label: "Skapa VLAN 10" },
+              { prefix: "S2(config-vlan)#", target: "name DATA10", label: "Namnge VLAN 10 DATA10" },
+              { prefix: "S2(config-vlan)#", target: "exit", label: "Lämna VLAN 10" },
+              { prefix: "S2(config)#", target: "vlan 20", label: "Skapa VLAN 20" },
+              { prefix: "S2(config-vlan)#", target: "name DATA20", label: "Namnge VLAN 20 DATA20" },
+              { prefix: "S2(config-vlan)#", target: "exit", label: "Lämna VLAN 20" },
+              { prefix: "S2(config)#", target: "interface fastEthernet 0/1", label: "Port Fa0/1 för personal" },
+              { prefix: "S2(config-if)#", target: "switchport mode access", label: "Sätt access-läge" },
+              { prefix: "S2(config-if)#", target: "switchport access vlan 20", label: "Koppla till VLAN 20" },
+              { prefix: "S2(config-if)#", target: "spanning-tree portfast", label: "Aktivera PortFast" },
+              { prefix: "S2(config-if)#", target: "spanning-tree bpduguard enable", label: "Aktivera BPDU Guard" },
+              { prefix: "S2(config-if)#", target: "exit", label: "Lämna interface" }
+            ]
+          },
+          {
+            title: "Steg 3 - Trunk-konfiguration",
+            items: [
+              { prefix: "S2(config)#", target: "spanning-tree mode rapid-pvst", label: "Aktivera Rapid-PVST+" },
+              { prefix: "S2(config)#", target: "interface range gigabitEthernet 0/1-2", label: "Välj trunk-länkar Gi0/1-2" },
+              { prefix: "S2(config-if-range)#", target: "description Trunk to DS1 and DS2", label: "Beskrivning för trunk" },
+              { prefix: "S2(config-if-range)#", target: "switchport mode trunk", label: "Sätt trunk-läge" },
+              { prefix: "S2(config-if-range)#", target: "switchport trunk allowed vlan 10,20", label: "Tillåt VLAN 10 och 20" },
+              { prefix: "S2(config-if-range)#", target: "no shutdown", label: "Starta portarna" },
+              { prefix: "S2(config-if-range)#", target: "exit", label: "Lämna range" },
+              { prefix: "S2(config)#", target: "end", label: "Avsluta till privileged EXEC" },
+              { prefix: "S2#", target: "write memory", label: "Spara konfigurationen" }
+            ]
+          }
+        ]
+      },
+
+      ds1: {
+        id: "ds1",
+        name: "DS1 (Distributionsswitch)",
+        role: "Root Prim V10 • HSRP Active V10 (110) • LACP • Interface Tracking Gi1/0/5 • OSPF",
+        roleBadge: "Root Prim V10 • HSRP 110/90",
+        contextTitle: "DS1 Konfiguration & Nätverksroll",
+        note: "DS1 är STP Root Bridge för VLAN 10 och standby för VLAN 20. HSRP Active för VLAN 10 (Prio 110, Preempt) och Standby för VLAN 20 (Prio 90, Preempt). Har HSRP Interface Tracking på Gi1/0/5 (-25 prio) samt OSPF Area 0.",
+        params: [
+          { key: "STP Roller", val: "VLAN 10 root primary, VLAN 20 root secondary" },
+          { key: "EtherChannel", val: "Gi1/0/3-4 -> port-channel 1 (mode active LACP)" },
+          { key: "Trunks Access", val: "Gi1/0/1 (S1), Gi1/0/2 (S2) allowed 10,20" },
+          { key: "HSRP VLAN 10", val: "172.8.10.2 | VIP 172.8.10.1 | Prio 110 | Preempt | Track Gi1/0/5" },
+          { key: "HSRP VLAN 20", val: "172.9.20.2 | VIP 172.9.20.1 | Prio 90 | Preempt | Track Gi1/0/5 25" },
+          { key: "Routad länk R1", val: "Gi1/0/5: 152.8.26.1 /30 (no switchport)" },
+          { key: "OSPF", val: "router ospf 1, RID 1.1.1.1, Passiva vlan 10/20, Area 0" }
+        ],
+        steps: [
+          {
+            title: "Steg 1 - Grundkonfiguration",
+            items: [
+              { prefix: "DS1>", target: "enable", label: "Aktivera EXEC-läge" },
+              { prefix: "DS1#", target: "configure terminal", label: "Gå till konfiguration" },
+              { prefix: "DS1(config)#", target: "hostname DS1", label: "Sätt hostname DS1" },
+              { prefix: "DS1(config)#", target: "no ip domain-lookup", label: "Inaktivera DNS-uppslag" },
+              { prefix: "DS1(config)#", target: "line console 0", label: "Konsollinje 0" },
+              { prefix: "DS1(config-line)#", target: "logging synchronous", label: "Synkron loggning" },
+              { prefix: "DS1(config-line)#", target: "exit", label: "Lämna line console" }
+            ]
+          },
+          {
+            title: "Steg 2 - VLAN-konfiguration",
+            items: [
+              { prefix: "DS1(config)#", target: "ip routing", label: "Aktivera routing" },
+              { prefix: "DS1(config)#", target: "vlan 10", label: "Skapa VLAN 10" },
+              { prefix: "DS1(config-vlan)#", target: "name DATA10", label: "Namnge VLAN 10 DATA10" },
+              { prefix: "DS1(config-vlan)#", target: "exit", label: "Lämna VLAN 10" },
+              { prefix: "DS1(config)#", target: "vlan 20", label: "Skapa VLAN 20" },
+              { prefix: "DS1(config-vlan)#", target: "name DATA20", label: "Namnge VLAN 20 DATA20" },
+              { prefix: "DS1(config-vlan)#", target: "exit", label: "Lämna VLAN 20" },
+              { prefix: "DS1(config)#", target: "spanning-tree mode rapid-pvst", label: "Aktivera Rapid-PVST+" },
+              { prefix: "DS1(config)#", target: "spanning-tree vlan 10 root primary", label: "Root primary för VLAN 10" },
+              { prefix: "DS1(config)#", target: "spanning-tree vlan 20 root secondary", label: "Root secondary för VLAN 20" }
+            ]
+          },
+          {
+            title: "Steg 3 - EtherChannel till DS2",
+            items: [
+              { prefix: "DS1(config)#", target: "interface range gigabitEthernet 1/0/3-4", label: "Välj Gi1/0/3-4 mot DS2" },
+              { prefix: "DS1(config-if-range)#", target: "description Trunk-link to DS2 LACP", label: "Beskrivning LACP" },
+              { prefix: "DS1(config-if-range)#", target: "switchport mode trunk", label: "Sätt trunk-läge" },
+              { prefix: "DS1(config-if-range)#", target: "switchport trunk allowed vlan 10,20", label: "Tillåt VLAN 10,20" },
+              { prefix: "DS1(config-if-range)#", target: "channel-group 1 mode active", label: "Skapa port-channel 1 (LACP active)" },
+              { prefix: "DS1(config-if-range)#", target: "no shutdown", label: "Starta portarna" },
+              { prefix: "DS1(config-if-range)#", target: "exit", label: "Lämna range" },
+              { prefix: "DS1(config)#", target: "interface port-channel 1", label: "Konfigurera port-channel 1" },
+              { prefix: "DS1(config)#", target: "description etherChannel till DS2", label: "Beskrivning för port-channel 1" },
+              { prefix: "DS1(config-if)#", target: "switchport mode trunk", label: "Sätt port-channel som trunk" },
+              { prefix: "DS1(config-if)#", target: "switchport trunk allowed vlan 10,20", label: "Tillåt VLAN 10,20 på port-channel" },
+              { prefix: "DS1(config-if)#", target: "no shutdown", label: "Aktivera port-channel 1" },
+              { prefix: "DS1(config-if)#", target: "exit", label: "Lämna port-channel" }
+            ]
+          },
+          {
+            title: "Steg 4 - Trunk-länkar till Access-switchar",
+            items: [
+              { prefix: "DS1(config)#", target: "interface gigabitEthernet 1/0/1", label: "Konfigurera port mot S1" },
+              { prefix: "DS1(config-if)#", target: "description Trunk-link to S1", label: "Beskrivning" },
+              { prefix: "DS1(config-if)#", target: "switchport mode trunk", label: "Sätt trunk-läge" },
+              { prefix: "DS1(config-if)#", target: "switchport trunk allowed vlan 10,20", label: "Tillåt VLAN 10,20" },
+              { prefix: "DS1(config-if)#", target: "no shutdown", label: "Starta porten" },
+              { prefix: "DS1(config-if)#", target: "exit", label: "Lämna interface" },
+              { prefix: "DS1(config)#", target: "interface gigabitEthernet 1/0/2", label: "Konfigurera port mot S2" },
+              { prefix: "DS1(config-if)#", target: "description Trunk-link to S2", label: "Beskrivning" },
+              { prefix: "DS1(config-if)#", target: "switchport mode trunk", label: "Sätt trunk-läge" },
+              { prefix: "DS1(config-if)#", target: "switchport trunk allowed vlan 10,20", label: "Tillåt VLAN 10,20" },
+              { prefix: "DS1(config-if)#", target: "no shutdown", label: "Starta porten" },
+              { prefix: "DS1(config-if)#", target: "exit", label: "Lämna interface" }
+            ]
+          },
+          {
+            title: "Steg 5 - HSRP Gateway redundans",
+            items: [
+              { prefix: "DS1(config)#", target: "interface Vlan 10", label: "Konfigurera SVI VLAN 10" },
+              { prefix: "DS1(config-if)#", target: "ip address 172.8.10.2 255.255.255.0", label: "Fysisk IP-adress" },
+              { prefix: "DS1(config-if)#", target: "standby 10 ip 172.8.10.1", label: "Virtuell gateway IP (Grupp 10)" },
+              { prefix: "DS1(config-if)#", target: "standby 10 priority 110", label: "HSRP prioritet 110 (Aktiv)" },
+              { prefix: "DS1(config-if)#", target: "standby 10 preempt", label: "Aktivera Preemption" },
+              { prefix: "DS1(config-if)#", target: "no shutdown", label: "Starta SVI" },
+              { prefix: "DS1(config-if)#", target: "exit", label: "Lämna interface" },
+              { prefix: "DS1(config)#", target: "interface Vlan 20", label: "Konfigurera SVI VLAN 20" },
+              { prefix: "DS1(config-if)#", target: "ip address 172.9.20.2 255.255.255.0", label: "Fysisk IP-adress" },
+              { prefix: "DS1(config-if)#", target: "standby 20 ip 172.9.20.1", label: "Virtuell gateway IP (Grupp 20)" },
+              { prefix: "DS1(config-if)#", target: "standby 20 priority 90", label: "HSRP prioritet 90 (Standby)" },
+              { prefix: "DS1(config-if)#", target: "standby 20 preempt", label: "Aktivera Preemption" },
+              { prefix: "DS1(config-if)#", target: "no shutdown", label: "Starta SVI" },
+              { prefix: "DS1(config-if)#", target: "exit", label: "Lämna interface" }
+            ]
+          },
+          {
+            title: "Steg 6 - Länk till R1",
+            items: [
+              { prefix: "DS1(config)#", target: "interface gigabitEthernet 1/0/5", label: "Konfigurera upplänk mot R1" },
+              { prefix: "DS1(config-if)#", target: "description Routad uplink till R1", label: "Beskrivning" },
+              { prefix: "DS1(config-if)#", target: "no switchport", label: "Gör till routad port" },
+              { prefix: "DS1(config-if)#", target: "ip address 152.8.26.1 255.255.255.252", label: "IP mot R1 (/30)" },
+              { prefix: "DS1(config-if)#", target: "no shutdown", label: "Starta porten" },
+              { prefix: "DS1(config-if)#", target: "exit", label: "Lämna interface" }
+            ]
+          },
+          {
+            title: "Steg 7 - Routing med OSPF",
+            items: [
+              { prefix: "DS1(config)#", target: "router ospf 1", label: "Starta OSPF process 1" },
+              { prefix: "DS1(config-router)#", target: "router-id 1.1.1.1", label: "Sätt Router-ID 1.1.1.1" },
+              { prefix: "DS1(config-router)#", target: "passive-interface vlan 10", label: "Passivt gränssnitt VLAN 10" },
+              { prefix: "DS1(config-router)#", target: "passive-interface vlan 20", label: "Passivt gränssnitt VLAN 20" },
+              { prefix: "DS1(config-router)#", target: "network 152.8.26.0 0.0.0.3 area 0", label: "Annonsera länk mot R1" },
+              { prefix: "DS1(config-router)#", target: "network 172.8.10.0 0.0.0.255 area 0", label: "Annonsera VLAN 10" },
+              { prefix: "DS1(config-router)#", target: "network 172.9.20.0 0.0.0.255 area 0", label: "Annonsera VLAN 20" },
+              { prefix: "DS1(config-router)#", target: "exit", label: "Lämna router config" },
+              { prefix: "DS1(config)#", target: "end", label: "Avsluta till privileged EXEC" },
+              { prefix: "DS1#", target: "write memory", label: "Spara konfigurationen" }
+            ]
+          },
+          {
+            title: "Steg 8 - HSRP Tracking",
+            items: [
+              { prefix: "DS1#", target: "configure terminal", label: "Gå till konfigurationsläge" },
+              { prefix: "DS1(config)#", target: "interface vlan 10", label: "Välj VLAN 10" },
+              { prefix: "DS1(config-if)#", target: "standby 10 track gigabitEthernet 1/0/5", label: "Övervaka upplänk Gi1/0/5 (default -10)" },
+              { prefix: "DS1(config-if)#", target: "exit", label: "Lämna interface" },
+              { prefix: "DS1(config)#", target: "interface vlan 20", label: "Välj VLAN 20" },
+              { prefix: "DS1(config-if)#", target: "standby 20 track gigabitEthernet 1/0/5 25", label: "Övervaka Gi1/0/5 med decrement 25" },
+              { prefix: "DS1(config-if)#", target: "exit", label: "Lämna interface" },
+              { prefix: "DS1(config)#", target: "end", label: "Avsluta konfiguration" }
+            ]
+          }
+        ]
+      },
+
+      ds2: {
+        id: "ds2",
+        name: "DS2 (Distributionsswitch)",
+        role: "Root Prim V20 • HSRP Active V20 (110) • LACP • Interface Tracking Gi1/0/5 • OSPF",
+        roleBadge: "Root Prim V20 • HSRP 90/110",
+        contextTitle: "DS2 Konfiguration & Nätverksroll",
+        note: "DS2 är STP Root Bridge för VLAN 20 och standby för VLAN 10. HSRP Standby för VLAN 10 (Prio 90, Preempt) och Active för VLAN 20 (Prio 110, Preempt). Har HSRP Interface Tracking på Gi1/0/5 samt OSPF Area 0.",
+        params: [
+          { key: "STP Roller", val: "VLAN 10 root secondary, VLAN 20 root primary" },
+          { key: "EtherChannel", val: "Gi1/0/3-4 -> port-channel 1 (mode active LACP)" },
+          { key: "Trunks Access", val: "Gi1/0/1 (S2), Gi1/0/2 (S1) allowed 10,20" },
+          { key: "HSRP VLAN 10", val: "172.8.10.3 | VIP 172.8.10.1 | Prio 90 | Preempt | Track Gi1/0/5" },
+          { key: "HSRP VLAN 20", val: "172.9.20.3 | VIP 172.9.20.1 | Prio 110 | Preempt | Track Gi1/0/5" },
+          { key: "Routad länk R3", val: "Gi1/0/5: 152.9.26.1 /30 (no switchport)" },
+          { key: "OSPF", val: "router ospf 1, RID 2.2.2.2, Passiva vlan 10/20, Area 0" }
+        ],
+        steps: [
+          {
+            title: "Steg 1 - Grundkonfiguration",
+            items: [
+              { prefix: "DS2>", target: "enable", label: "Aktivera EXEC-läge" },
+              { prefix: "DS2#", target: "configure terminal", label: "Gå till konfiguration" },
+              { prefix: "DS2(config)#", target: "hostname DS2", label: "Sätt hostname DS2" },
+              { prefix: "DS2(config)#", target: "no ip domain-lookup", label: "Inaktivera DNS-uppslag" },
+              { prefix: "DS2(config)#", target: "line console 0", label: "Konsollinje 0" },
+              { prefix: "DS2(config-line)#", target: "logging synchronous", label: "Synkron loggning" },
+              { prefix: "DS2(config-line)#", target: "exit", label: "Lämna line console" }
+            ]
+          },
+          {
+            title: "Steg 2 - VLAN-konfiguration",
+            items: [
+              { prefix: "DS2(config)#", target: "ip routing", label: "Aktivera routing" },
+              { prefix: "DS2(config)#", target: "vlan 10", label: "Skapa VLAN 10" },
+              { prefix: "DS2(config-vlan)#", target: "name DATA10", label: "Namnge VLAN 10 DATA10" },
+              { prefix: "DS2(config-vlan)#", target: "exit", label: "Lämna VLAN 10" },
+              { prefix: "DS2(config)#", target: "vlan 20", label: "Skapa VLAN 20" },
+              { prefix: "DS2(config-vlan)#", target: "name DATA20", label: "Namnge VLAN 20 DATA20" },
+              { prefix: "DS2(config-vlan)#", target: "exit", label: "Lämna VLAN 20" },
+              { prefix: "DS2(config)#", target: "spanning-tree mode rapid-pvst", label: "Aktivera Rapid-PVST+" },
+              { prefix: "DS2(config)#", target: "spanning-tree vlan 10 root secondary", label: "Root secondary för VLAN 10" },
+              { prefix: "DS2(config)#", target: "spanning-tree vlan 20 root primary", label: "Root primary för VLAN 20" }
+            ]
+          },
+          {
+            title: "Steg 3 - EtherChannel till DS1",
+            items: [
+              { prefix: "DS2(config)#", target: "interface range gigabitEthernet 1/0/3-4", label: "Välj Gi1/0/3-4 mot DS1" },
+              { prefix: "DS2(config-if-range)#", target: "description Trunk-link to DS1 LACP", label: "Beskrivning LACP" },
+              { prefix: "DS2(config-if-range)#", target: "switchport mode trunk", label: "Sätt trunk-läge" },
+              { prefix: "DS2(config-if-range)#", target: "switchport trunk allowed vlan 10,20", label: "Tillåt VLAN 10,20" },
+              { prefix: "DS2(config-if-range)#", target: "channel-group 1 mode active", label: "Skapa port-channel 1 (LACP active)" },
+              { prefix: "DS2(config-if-range)#", target: "no shutdown", label: "Starta portarna" },
+              { prefix: "DS2(config-if-range)#", target: "exit", label: "Lämna range" },
+              { prefix: "DS2(config)#", target: "interface port-channel 1", label: "Konfigurera port-channel 1" },
+              { prefix: "DS2(config)#", target: "description etherChannel till DS1", label: "Beskrivning för port-channel 1" },
+              { prefix: "DS2(config-if)#", target: "switchport mode trunk", label: "Sätt port-channel som trunk" },
+              { prefix: "DS2(config-if)#", target: "switchport trunk allowed vlan 10,20", label: "Tillåt VLAN 10,20 på port-channel" },
+              { prefix: "DS2(config-if)#", target: "no shutdown", label: "Aktivera port-channel 1" },
+              { prefix: "DS2(config-if)#", target: "exit", label: "Lämna port-channel" }
+            ]
+          },
+          {
+            title: "Steg 4 - Trunk-länkar till Access-switchar",
+            items: [
+              { prefix: "DS2(config)#", target: "interface gigabitEthernet 1/0/1", label: "Konfigurera port mot S2" },
+              { prefix: "DS2(config-if)#", target: "description Trunk-link to S2", label: "Beskrivning" },
+              { prefix: "DS2(config-if)#", target: "switchport mode trunk", label: "Sätt trunk-läge" },
+              { prefix: "DS2(config-if)#", target: "switchport trunk allowed vlan 10,20", label: "Tillåt VLAN 10,20" },
+              { prefix: "DS2(config-if)#", target: "no shutdown", label: "Starta porten" },
+              { prefix: "DS2(config-if)#", target: "exit", label: "Lämna interface" },
+              { prefix: "DS2(config)#", target: "interface gigabitEthernet 1/0/2", label: "Konfigurera port mot S1" },
+              { prefix: "DS2(config-if)#", target: "description Trunk-link to S1", label: "Beskrivning" },
+              { prefix: "DS2(config-if)#", target: "switchport mode trunk", label: "Sätt trunk-läge" },
+              { prefix: "DS2(config-if)#", target: "switchport trunk allowed vlan 10,20", label: "Tillåt VLAN 10,20" },
+              { prefix: "DS2(config-if)#", target: "no shutdown", label: "Starta porten" },
+              { prefix: "DS2(config-if)#", target: "exit", label: "Lämna interface" }
+            ]
+          },
+          {
+            title: "Steg 5 - HSRP Gateway redundans",
+            items: [
+              { prefix: "DS2(config)#", target: "interface Vlan 10", label: "Konfigurera SVI VLAN 10" },
+              { prefix: "DS2(config-if)#", target: "ip address 172.8.10.3 255.255.255.0", label: "Fysisk IP-adress" },
+              { prefix: "DS2(config-if)#", target: "standby 10 ip 172.8.10.1", label: "Virtuell gateway IP (Grupp 10)" },
+              { prefix: "DS2(config-if)#", target: "standby 10 priority 90", label: "HSRP prioritet 90 (Standby)" },
+              { prefix: "DS2(config-if)#", target: "standby 10 preempt", label: "Aktivera Preemption" },
+              { prefix: "DS2(config-if)#", target: "no shutdown", label: "Starta SVI" },
+              { prefix: "DS2(config-if)#", target: "exit", label: "Lämna interface" },
+              { prefix: "DS2(config)#", target: "interface Vlan 20", label: "Konfigurera SVI VLAN 20" },
+              { prefix: "DS2(config-if)#", target: "ip address 172.9.20.3 255.255.255.0", label: "Fysisk IP-adress" },
+              { prefix: "DS2(config-if)#", target: "standby 20 ip 172.9.20.1", label: "Virtuell gateway IP (Grupp 20)" },
+              { prefix: "DS2(config-if)#", target: "standby 20 priority 110", label: "HSRP prioritet 110 (Aktiv)" },
+              { prefix: "DS2(config-if)#", target: "standby 20 preempt", label: "Aktivera Preemption" },
+              { prefix: "DS2(config-if)#", target: "no shutdown", label: "Starta SVI" },
+              { prefix: "DS2(config-if)#", target: "exit", label: "Lämna interface" }
+            ]
+          },
+          {
+            title: "Steg 6 - Länk till R3",
+            items: [
+              { prefix: "DS2(config)#", target: "interface gigabitEthernet 1/0/5", label: "Konfigurera upplänk mot R3" },
+              { prefix: "DS2(config-if)#", target: "description Routad uplink till R3", label: "Beskrivning" },
+              { prefix: "DS2(config-if)#", target: "no switchport", label: "Gör till routad port" },
+              { prefix: "DS2(config-if)#", target: "ip address 152.9.26.1 255.255.255.252", label: "IP mot R3 (/30)" },
+              { prefix: "DS2(config-if)#", target: "no shutdown", label: "Starta porten" },
+              { prefix: "DS2(config-if)#", target: "exit", label: "Lämna interface" }
+            ]
+          },
+          {
+            title: "Steg 7 - Routing med OSPF",
+            items: [
+              { prefix: "DS2(config)#", target: "router ospf 1", label: "Starta OSPF process 1" },
+              { prefix: "DS2(config-router)#", target: "router-id 2.2.2.2", label: "Sätt Router-ID 2.2.2.2" },
+              { prefix: "DS2(config-router)#", target: "passive-interface vlan 10", label: "Passivt gränssnitt VLAN 10" },
+              { prefix: "DS2(config-router)#", target: "passive-interface vlan 20", label: "Passivt gränssnitt VLAN 20" },
+              { prefix: "DS2(config-router)#", target: "network 152.9.26.0 0.0.0.3 area 0", label: "Annonsera länk mot R3" },
+              { prefix: "DS2(config-router)#", target: "network 172.8.10.0 0.0.0.255 area 0", label: "Annonsera VLAN 10" },
+              { prefix: "DS2(config-router)#", target: "network 172.9.20.0 0.0.0.255 area 0", label: "Annonsera VLAN 20" },
+              { prefix: "DS2(config-router)#", target: "exit", label: "Lämna router config" },
+              { prefix: "DS2(config)#", target: "end", label: "Avsluta till privileged EXEC" },
+              { prefix: "DS2#", target: "write memory", label: "Spara konfigurationen" }
+            ]
+          },
+          {
+            title: "Steg 8 - HSRP Tracking",
+            items: [
+              { prefix: "DS2#", target: "configure terminal", label: "Gå till konfigurationsläge" },
+              { prefix: "DS2(config)#", target: "interface vlan 10", label: "Välj VLAN 10" },
+              { prefix: "DS2(config-if)#", target: "standby 10 track gigabitEthernet 1/0/5", label: "Övervaka upplänk Gi1/0/5" },
+              { prefix: "DS2(config-if)#", target: "exit", label: "Lämna interface" },
+              { prefix: "DS2(config)#", target: "interface vlan 20", label: "Välj VLAN 20" },
+              { prefix: "DS2(config-if)#", target: "standby 20 track gigabitEthernet 1/0/5", label: "Övervaka upplänk Gi1/0/5" },
+              { prefix: "DS2(config-if)#", target: "exit", label: "Lämna interface" },
+              { prefix: "DS2(config)#", target: "end", label: "Avsluta konfiguration" }
+            ]
+          }
+        ]
+      },
+
+      r1: {
+        id: "r1",
+        name: "R1 (OSPF Router 1)",
+        role: "Routing-lager • OSPF RID 11.11.11.11 • Länk till DS1 & WAN R2",
+        roleBadge: "OSPF Router 1",
+        contextTitle: "R1 Konfiguration & Nätverksroll",
+        note: "Router R1 kopplar distributionsswitch DS1 till WAN-routern R2. Kör OSPF i Area 0 med Router ID 11.11.11.11.",
+        params: [
+          { key: "Länk till DS1", val: "Gi0/0: 152.8.26.2 /30" },
+          { key: "WAN-länk till R2", val: "Gi0/1: 10.10.0.1 /30" },
+          { key: "OSPF Process", val: "router ospf 1, RID 11.11.11.11" },
+          { key: "OSPF Nätverk", val: "152.8.26.0/30 & 10.10.0.0/30 i Area 0" }
+        ],
+        steps: [
+          {
+            title: "Steg 1 - Grundkonfiguration",
+            items: [
+              { prefix: "Router>", target: "enable", label: "Aktivera EXEC-läge" },
+              { prefix: "Router#", target: "configure terminal", label: "Gå till konfiguration" },
+              { prefix: "Router(config)#", target: "hostname R1", label: "Sätt hostname R1" },
+              { prefix: "R1(config)#", target: "no ip domain-lookup", label: "Inaktivera DNS-uppslag" },
+              { prefix: "R1(config)#", target: "line console 0", label: "Konsollinje 0" },
+              { prefix: "R1(config-line)#", target: "logging synchronous", label: "Synkron loggning" },
+              { prefix: "R1(config-line)#", target: "exit", label: "Lämna line console" }
+            ]
+          },
+          {
+            title: "Steg 2 - Länk till DS1",
+            items: [
+              { prefix: "R1(config)#", target: "interface gigabitEthernet 0/0", label: "Konfigurera Gi0/0 mot DS1" },
+              { prefix: "R1(config-if)#", target: "description Länk till DS1", label: "Beskrivning" },
+              { prefix: "R1(config-if)#", target: "ip address 152.8.26.2 255.255.255.252", label: "IP mot DS1 (/30)" },
+              { prefix: "R1(config-if)#", target: "no shutdown", label: "Starta porten" },
+              { prefix: "R1(config-if)#", target: "exit", label: "Lämna interface" }
+            ]
+          },
+          {
+            title: "Steg 3 - WAN-länk till R2",
+            items: [
+              { prefix: "R1(config)#", target: "interface gigabitEthernet 0/1", label: "Konfigurera Gi0/1 mot R2" },
+              { prefix: "R1(config-if)#", target: "description WAN-länk till R2", label: "Beskrivning" },
+              { prefix: "R1(config-if)#", target: "ip address 10.10.0.1 255.255.255.252", label: "IP mot R2 (/30)" },
+              { prefix: "R1(config-if)#", target: "no shutdown", label: "Starta porten" },
+              { prefix: "R1(config-if)#", target: "exit", label: "Lämna interface" }
+            ]
+          },
+          {
+            title: "Steg 4 - Routing med OSPF",
+            items: [
+              { prefix: "R1(config)#", target: "router ospf 1", label: "Starta OSPF process 1" },
+              { prefix: "R1(config-router)#", target: "router-id 11.11.11.11", label: "Sätt Router-ID 11.11.11.11" },
+              { prefix: "R1(config-router)#", target: "network 152.8.26.0 0.0.0.3 area 0", label: "Annonsera länk mot DS1" },
+              { prefix: "R1(config-router)#", target: "network 10.10.0.0 0.0.0.3 area 0", label: "Annonsera WAN-länk mot R2" },
+              { prefix: "R1(config-router)#", target: "exit", label: "Lämna OSPF" },
+              { prefix: "R1(config-router)#", target: "end", label: "Avsluta till privileged EXEC" },
+              { prefix: "R1#", target: "write memory", label: "Spara konfigurationen" }
+            ]
+          }
+        ]
+      },
+
+      r2: {
+        id: "r2",
+        name: "R2 (Core WAN Router)",
+        role: "WAN-lager • OSPF RID 22.22.22.22 • WAN R1 & R3 • Fjärrnät LAN 8",
+        roleBadge: "Core WAN Router",
+        contextTitle: "R2 Konfiguration & Nätverksroll",
+        note: "Central WAN-router som binder samman R1 och R3 och agerar gateway till fjärrnätverket LAN 8 (8.8.8.0/28). Kör OSPF Area 0 med RID 22.22.22.22.",
+        params: [
+          { key: "WAN-länk till R1", val: "Gi0/0: 10.10.0.2 /30" },
+          { key: "WAN-länk till R3", val: "Gi0/1: 10.20.0.1 /30" },
+          { key: "LAN 8 Fjärrnät", val: "Gi0/2: 8.8.8.1 /28" },
+          { key: "OSPF Process", val: "router ospf 1, RID 22.22.22.22" },
+          { key: "OSPF Nätverk", val: "10.10.0.0/30, 10.20.0.0/30, 8.8.8.0/28 Area 0" }
+        ],
+        steps: [
+          {
+            title: "Steg 1 - Grundkonfiguration",
+            items: [
+              { prefix: "Router>", target: "enable", label: "Aktivera EXEC-läge" },
+              { prefix: "Router#", target: "configure terminal", label: "Gå till konfiguration" },
+              { prefix: "Router(config)#", target: "hostname R2", label: "Sätt hostname R2" },
+              { prefix: "R2(config)#", target: "no ip domain-lookup", label: "Inaktivera DNS-uppslag" },
+              { prefix: "R2(config)#", target: "line console 0", label: "Konsollinje 0" },
+              { prefix: "R2(config-line)#", target: "logging synchronous", label: "Synkron loggning" },
+              { prefix: "R2(config-line)#", target: "exit", label: "Lämna line console" }
+            ]
+          },
+          {
+            title: "Steg 2 - WAN-länk till R1",
+            items: [
+              { prefix: "R2(config)#", target: "interface gigabitEthernet 0/0", label: "Konfigurera Gi0/0 mot R1" },
+              { prefix: "R2(config-if)#", target: "description WAN-länk till R1", label: "Beskrivning" },
+              { prefix: "R2(config-if)#", target: "ip address 10.10.0.2 255.255.255.252", label: "IP mot R1 (/30)" },
+              { prefix: "R2(config-if)#", target: "no shutdown", label: "Starta porten" },
+              { prefix: "R2(config-if)#", target: "exit", label: "Lämna interface" }
+            ]
+          },
+          {
+            title: "Steg 3 - WAN-länk till R3",
+            items: [
+              { prefix: "R2(config)#", target: "interface gigabitEthernet 0/1", label: "Konfigurera Gi0/1 mot R3" },
+              { prefix: "R2(config-if)#", target: "description WAN-länk till R3", label: "Beskrivning" },
+              { prefix: "R2(config-if)#", target: "ip address 10.20.0.1 255.255.255.252", label: "IP mot R3 (/30)" },
+              { prefix: "R2(config-if)#", target: "no shutdown", label: "Starta porten" },
+              { prefix: "R2(config-if)#", target: "exit", label: "Lämna interface" }
+            ]
+          },
+          {
+            title: "Steg 4 - LAN 8 Länk",
+            items: [
+              { prefix: "R2(config)#", target: "interface gigabitEthernet 0/2", label: "Konfigurera Gi0/2 för LAN 8" },
+              { prefix: "R2(config-if)#", target: "description Link to LAN 8", label: "Beskrivning" },
+              { prefix: "R2(config-if)#", target: "ip address 8.8.8.1 255.255.255.240", label: "IP för LAN 8 (/28)" },
+              { prefix: "R2(config-if)#", target: "no shutdown", label: "Starta porten" },
+              { prefix: "R2(config-if)#", target: "exit", label: "Lämna interface" }
+            ]
+          },
+          {
+            title: "Steg 5 - Routing med OSPF",
+            items: [
+              { prefix: "R2(config)#", target: "router ospf 1", label: "Starta OSPF process 1" },
+              { prefix: "R2(config-router)#", target: "router-id 22.22.22.22", label: "Sätt Router-ID 22.22.22.22" },
+              { prefix: "R2(config-router)#", target: "network 10.10.0.0 0.0.0.3 area 0", label: "Annonsera WAN mot R1" },
+              { prefix: "R2(config-router)#", target: "network 10.20.0.0 0.0.0.3 area 0", label: "Annonsera WAN mot R3" },
+              { prefix: "R2(config-router)#", target: "network 8.8.8.0 0.0.0.15 area 0", label: "Annonsera LAN 8 nätverk" },
+              { prefix: "R2(config-router)#", target: "exit", label: "Lämna OSPF" },
+              { prefix: "R2(config)#", target: "end", label: "Avsluta till privileged EXEC" },
+              { prefix: "R2#", target: "write memory", label: "Spara konfigurationen" }
+            ]
+          }
+        ]
+      },
+
+      r3: {
+        id: "r3",
+        name: "R3 (OSPF Router 3)",
+        role: "Routing-lager • OSPF RID 33.33.33.33 • Länk till DS2 & WAN R2",
+        roleBadge: "OSPF Router 3",
+        contextTitle: "R3 Konfiguration & Nätverksroll",
+        note: "Router R3 kopplar distributionsswitch DS2 till WAN-routern R2. Kör OSPF i Area 0 med Router ID 33.33.33.33.",
+        params: [
+          { key: "Länk till DS2", val: "Gi0/0: 152.9.26.2 /30" },
+          { key: "WAN-länk till R2", val: "Gi0/1: 10.20.0.2 /30" },
+          { key: "OSPF Process", val: "router ospf 1, RID 33.33.33.33" },
+          { key: "OSPF Nätverk", val: "152.9.26.0/30 & 10.20.0.0/30 i Area 0" }
+        ],
+        steps: [
+          {
+            title: "Steg 1 - Grundkonfiguration",
+            items: [
+              { prefix: "Router>", target: "enable", label: "Aktivera EXEC-läge" },
+              { prefix: "Router#", target: "configure terminal", label: "Gå till konfiguration" },
+              { prefix: "Router(config)#", target: "hostname R3", label: "Sätt hostname R3" },
+              { prefix: "R3(config)#", target: "no ip domain-lookup", label: "Inaktivera DNS-uppslag" },
+              { prefix: "R3(config)#", target: "line console 0", label: "Konsollinje 0" },
+              { prefix: "R3(config-line)#", target: "logging synchronous", label: "Synkron loggning" },
+              { prefix: "R3(config-line)#", target: "exit", label: "Lämna line console" }
+            ]
+          },
+          {
+            title: "Steg 2 - Länk till DS2",
+            items: [
+              { prefix: "R3(config)#", target: "interface gigabitEthernet 0/0", label: "Konfigurera Gi0/0 mot DS2" },
+              { prefix: "R3(config-if)#", target: "description Länk till DS2", label: "Beskrivning" },
+              { prefix: "R3(config-if)#", target: "ip address 152.9.26.2 255.255.255.252", label: "IP mot DS2 (/30)" },
+              { prefix: "R3(config-if)#", target: "no shutdown", label: "Starta porten" },
+              { prefix: "R3(config-if)#", target: "exit", label: "Lämna interface" }
+            ]
+          },
+          {
+            title: "Steg 3 - WAN-länk till R2",
+            items: [
+              { prefix: "R3(config)#", target: "interface gigabitEthernet 0/1", label: "Konfigurera Gi0/1 mot R2" },
+              { prefix: "R3(config-if)#", target: "description WAN-länk till R2", label: "Beskrivning" },
+              { prefix: "R3(config-if)#", target: "ip address 10.20.0.2 255.255.255.252", label: "IP mot R2 (/30)" },
+              { prefix: "R3(config-if)#", target: "no shutdown", label: "Starta porten" },
+              { prefix: "R3(config-if)#", target: "exit", label: "Lämna interface" }
+            ]
+          },
+          {
+            title: "Steg 4 - Routing med OSPF",
+            items: [
+              { prefix: "R3(config)#", target: "router ospf 1", label: "Starta OSPF process 1" },
+              { prefix: "R3(config-router)#", target: "router-id 33.33.33.33", label: "Sätt Router-ID 33.33.33.33" },
+              { prefix: "R3(config-router)#", target: "network 152.9.26.0 0.0.0.3 area 0", label: "Annonsera länk mot DS2" },
+              { prefix: "R3(config-router)#", target: "network 10.20.0.0 0.0.0.3 area 0", label: "Annonsera WAN-länk mot R2" },
+              { prefix: "R3(config-router)#", target: "exit", label: "Lämna OSPF" },
+              { prefix: "R3(config)#", target: "end", label: "Avsluta till privileged EXEC" },
+              { prefix: "R3#", target: "write memory", label: "Spara konfigurationen" }
+            ]
+          }
+        ]
+      }
+    }
   }
 };
+
+// Process each device to automatically create fullSolution and guidedItems
+for (const labKey in LAB_CONFIGS) {
+  const lab = LAB_CONFIGS[labKey];
+  for (const devKey in lab.devices) {
+    const dev = lab.devices[devKey];
+    let solLines = [];
+    let guided = [];
+    dev.steps.forEach(st => {
+      solLines.push(`! ${st.title}`);
+      st.items.forEach(it => {
+        solLines.push(`${it.prefix}${it.target}`);
+        guided.push({
+          prefix: it.prefix,
+          target: it.target,
+          label: it.label,
+          stepTitle: st.title
+        });
+      });
+    });
+    dev.fullSolution = solLines.join("\n");
+    dev.guidedItems = guided;
+  }
+}
+
+// Backwards compatibility alias
+const CONFIG_MODELS = LAB_CONFIGS.labb6.devices;
 
 // ==========================================
 // 5. APPLICATION STATE
@@ -1640,8 +2639,10 @@ const state = {
   },
   // Configs
   config: {
-    currentDevice: "mls1",
-    mode: "write" // 'write', 'guided', 'solution'
+    currentLab: "labb6",
+    currentDevice: "ds1",
+    mode: "guided",
+    savedValues: {}
   },
   // Global continuous streak
   streak: 0
@@ -2402,17 +3403,30 @@ function submitTerminalCommand() {
 }
 
 // ==========================================
-// 9. FULL CONFIGURATIONS WORKSPACE (Tab 3)
+// 9. FULL CONFIGURATIONS WORKSPACE (Tab 3: Labb 6 & 7)
 // ==========================================
+function getCurrentDeviceModel() {
+  const lab = LAB_CONFIGS[state.config.currentLab] || LAB_CONFIGS.labb6;
+  return lab.devices[state.config.currentDevice] || Object.values(lab.devices)[0];
+}
+
 function initConfigWorkspace() {
-  // Device selector buttons
-  const devBtns = document.querySelectorAll(".device-btn");
-  devBtns.forEach(btn => {
+  // Lab selector buttons (Labb 6 vs Labb 7)
+  const labBtns = document.querySelectorAll("#labSelector .lab-btn");
+  labBtns.forEach(btn => {
     btn.addEventListener("click", () => {
+      const selectedLab = btn.getAttribute("data-lab");
+      if (selectedLab === state.config.currentLab) return;
       sfx.playClick();
-      devBtns.forEach(b => b.classList.remove("active"));
+      labBtns.forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
-      state.config.currentDevice = btn.getAttribute("data-device");
+      state.config.currentLab = selectedLab;
+
+      // Default to first device or ds1 if exists
+      const devices = Object.keys(LAB_CONFIGS[selectedLab].devices);
+      state.config.currentDevice = devices.includes("ds1") ? "ds1" : devices[0];
+
+      renderDevicePillSelector();
       loadDeviceConfiguration();
     });
   });
@@ -2422,187 +3436,527 @@ function initConfigWorkspace() {
   const guidedTab = document.getElementById("editorGuidedTab");
   const solTab = document.getElementById("editorSolutionTab");
 
-  writeTab.addEventListener("click", () => setEditorMode("write"));
-  guidedTab.addEventListener("click", () => setEditorMode("guided"));
-  solTab.addEventListener("click", () => setEditorMode("solution"));
+  if (writeTab) writeTab.addEventListener("click", () => setEditorMode("write"));
+  if (guidedTab) guidedTab.addEventListener("click", () => setEditorMode("guided"));
+  if (solTab) solTab.addEventListener("click", () => setEditorMode("solution"));
 
   // Editor tool buttons
-  document.getElementById("loadTemplateBtn").addEventListener("click", () => {
-    loadEditorTemplate();
-  });
+  const fillAllBtn = document.getElementById("fillAllGuidedBtn");
+  if (fillAllBtn) {
+    fillAllBtn.addEventListener("click", () => {
+      fillAllGuided();
+    });
+  }
 
-  document.getElementById("clearEditorBtn").addEventListener("click", () => {
-    document.getElementById("configCodeEditor").value = "";
-    updateLineNumbers();
-  });
+  const loadTplBtn = document.getElementById("loadTemplateBtn");
+  if (loadTplBtn) {
+    loadTplBtn.addEventListener("click", () => {
+      loadEditorTemplate();
+    });
+  }
 
-  document.getElementById("copySolutionBtn").addEventListener("click", () => {
-    const dev = CONFIG_MODELS[state.config.currentDevice];
-    if (dev) {
-      navigator.clipboard.writeText(dev.fullSolution);
-      alert("Facit kopierat till urklipp!");
-    }
-  });
+  const clearBtn = document.getElementById("clearEditorBtn");
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      sfx.playClick();
+      if (state.config.mode === "guided") {
+        const inputs = document.querySelectorAll(".guided-input");
+        inputs.forEach(inp => {
+          inp.value = "";
+          inp.classList.remove("correct", "wrong");
+          const icon = inp.parentElement.querySelector(".guided-status-icon");
+          if (icon) icon.textContent = "";
+        });
+        const dev = getCurrentDeviceModel();
+        if (dev) {
+          dev.steps.forEach((_, sIdx) => {
+            const stepBadge = document.getElementById(`stepBadge_${sIdx}`);
+            if (stepBadge) {
+              stepBadge.classList.remove("complete");
+              stepBadge.textContent = `Steg ${sIdx + 1}`;
+            }
+          });
+        }
+        updateGuidedProgressBar();
+      } else {
+        const textarea = document.getElementById("configCodeEditor");
+        if (textarea) {
+          textarea.value = "";
+          updateLineNumbers();
+        }
+      }
+    });
+  }
 
-  // Validation
-  document.getElementById("validateConfigBtn").addEventListener("click", () => {
-    validateUserConfiguration();
-  });
+  const copyBtn = document.getElementById("copySolutionBtn");
+  if (copyBtn) {
+    copyBtn.addEventListener("click", () => {
+      const dev = getCurrentDeviceModel();
+      if (dev && dev.fullSolution) {
+        navigator.clipboard.writeText(dev.fullSolution);
+        sfx.playClick();
+        alert(`Facit för ${dev.name} kopierat till urklipp!`);
+      }
+    });
+  }
 
-  // Guided check
-  document.getElementById("checkGuidedBtn").addEventListener("click", () => {
-    validateGuidedInputs();
-  });
+  const checkGuidedBtn = document.getElementById("checkGuidedBtn");
+  if (checkGuidedBtn) {
+    checkGuidedBtn.addEventListener("click", () => {
+      validateGuidedInputs();
+    });
+  }
+
+  const showHintsBtn = document.getElementById("showHintsBtn");
+  if (showHintsBtn) {
+    showHintsBtn.addEventListener("click", () => {
+      fillAllGuided();
+    });
+  }
+
+  const validateCfgBtn = document.getElementById("validateConfigBtn");
+  if (validateCfgBtn) {
+    validateCfgBtn.addEventListener("click", () => {
+      validateUserConfiguration();
+    });
+  }
 
   // Code editor textarea line numbers sync
   const textarea = document.getElementById("configCodeEditor");
-  textarea.addEventListener("input", updateLineNumbers);
-  textarea.addEventListener("scroll", () => {
-    document.getElementById("editorLineNumbers").scrollTop = textarea.scrollTop;
-  });
+  if (textarea) {
+    textarea.addEventListener("input", updateLineNumbers);
+    textarea.addEventListener("scroll", () => {
+      const lineNumbersEl = document.getElementById("editorLineNumbers");
+      if (lineNumbersEl) lineNumbersEl.scrollTop = textarea.scrollTop;
+    });
+  }
 
+  // Initial population
+  renderDevicePillSelector();
   loadDeviceConfiguration();
+}
+
+function renderDevicePillSelector() {
+  const container = document.getElementById("devicePillSelector");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const lab = LAB_CONFIGS[state.config.currentLab] || LAB_CONFIGS.labb6;
+  const devKeys = Object.keys(lab.devices);
+
+  devKeys.forEach(devKey => {
+    const dev = lab.devices[devKey];
+    const btn = document.createElement("button");
+    btn.className = `device-btn ${devKey === state.config.currentDevice ? "active" : ""}`;
+    btn.setAttribute("data-device", devKey);
+    btn.innerHTML = `<span class="dev-name">${escapeHtml(dev.name)}</span> <span class="dev-role">${escapeHtml(dev.role)}</span>`;
+
+    btn.addEventListener("click", () => {
+      sfx.playClick();
+      container.querySelectorAll(".device-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      state.config.currentDevice = devKey;
+      loadDeviceConfiguration();
+    });
+
+    container.appendChild(btn);
+  });
 }
 
 function setEditorMode(mode) {
   sfx.playClick();
   state.config.mode = mode;
 
-  document.getElementById("editorWriteTab").classList.toggle("active", mode === "write");
-  document.getElementById("editorGuidedTab").classList.toggle("active", mode === "guided");
-  document.getElementById("editorSolutionTab").classList.toggle("active", mode === "solution");
+  const writeTab = document.getElementById("editorWriteTab");
+  const guidedTab = document.getElementById("editorGuidedTab");
+  const solTab = document.getElementById("editorSolutionTab");
 
-  document.getElementById("editorTextView").style.display = mode === "write" ? "block" : "none";
-  document.getElementById("editorGuidedView").style.display = mode === "guided" ? "block" : "none";
-  document.getElementById("editorSolutionView").style.display = mode === "solution" ? "block" : "none";
-  document.getElementById("validationDrawer").style.display = "none";
+  if (writeTab) writeTab.classList.toggle("active", mode === "write");
+  if (guidedTab) guidedTab.classList.toggle("active", mode === "guided");
+  if (solTab) solTab.classList.toggle("active", mode === "solution");
+
+  const textView = document.getElementById("editorTextView");
+  const guidedView = document.getElementById("editorGuidedView");
+  const solView = document.getElementById("editorSolutionView");
+  const valDrawer = document.getElementById("validationDrawer");
+
+  if (textView) textView.style.display = mode === "write" ? "block" : "none";
+  if (guidedView) guidedView.style.display = mode === "guided" ? "block" : "none";
+  if (solView) solView.style.display = mode === "solution" ? "block" : "none";
+  if (valDrawer) valDrawer.style.display = "none";
 
   if (mode === "guided") {
     renderGuidedInputs();
+  } else if (mode === "write") {
+    updateLineNumbers();
   }
 }
 
 function loadDeviceConfiguration() {
-  const dev = CONFIG_MODELS[state.config.currentDevice];
+  const lab = LAB_CONFIGS[state.config.currentLab] || LAB_CONFIGS.labb6;
+  const dev = lab.devices[state.config.currentDevice] || Object.values(lab.devices)[0];
   if (!dev) return;
 
-  document.getElementById("cfgContextTitle").textContent = dev.contextTitle;
-  document.getElementById("cfgRoleBadge").textContent = dev.role;
-  document.getElementById("cfgImportantNote").textContent = dev.note;
+  const titleEl = document.getElementById("cfgContextTitle");
+  if (titleEl) titleEl.textContent = `${dev.name} (${lab.title.split(":")[0]})`;
 
-  // Render params table
+  const roleEl = document.getElementById("cfgRoleBadge");
+  if (roleEl) roleEl.textContent = dev.role;
+
+  const noteEl = document.getElementById("cfgImportantNote");
+  if (noteEl) noteEl.textContent = dev.note;
+
+  // Render parameters table
   const table = document.getElementById("cfgParamsTable");
-  table.innerHTML = "";
-  dev.params.forEach(p => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${escapeHtml(p.key)}</td><td>${escapeHtml(p.val)}</td>`;
-    table.appendChild(tr);
-  });
+  if (table) {
+    table.innerHTML = "";
+    (dev.params || []).forEach(p => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${escapeHtml(p.key)}</td><td>${escapeHtml(p.val)}</td>`;
+      table.appendChild(tr);
+    });
+  }
 
   // Update Mini Topology SVG
-  renderMiniTopology(state.config.currentDevice);
+  renderMiniTopology(state.config.currentLab, state.config.currentDevice);
 
   // Update Solution block
-  document.getElementById("solutionCodeBlock").textContent = dev.fullSolution;
+  const solBlock = document.getElementById("solutionCodeBlock");
+  if (solBlock) solBlock.textContent = dev.fullSolution;
 
-  // Update Guided View if active
+  // Update badge summary
+  const summaryBadge = document.getElementById("guidedDevSummaryBadge");
+  if (summaryBadge) {
+    const totalCmds = dev.guidedItems ? dev.guidedItems.length : 0;
+    summaryBadge.textContent = `${dev.steps.length} steg (${totalCmds} kommandon)`;
+  }
+
+  // Render guided inputs if guided mode
   if (state.config.mode === "guided") {
     renderGuidedInputs();
   }
 
-  // Reset Drawer
-  document.getElementById("validationDrawer").style.display = "none";
+  // Reset validation drawer
+  const valDrawer = document.getElementById("validationDrawer");
+  if (valDrawer) valDrawer.style.display = "none";
 }
 
 function updateLineNumbers() {
   const textarea = document.getElementById("configCodeEditor");
+  if (!textarea) return;
   const lines = textarea.value.split("\n").length;
   const lineNumbersEl = document.getElementById("editorLineNumbers");
-  lineNumbersEl.innerHTML = Array.from({ length: Math.max(lines, 1) }, (_, i) => i + 1).join("\n");
+  if (lineNumbersEl) {
+    lineNumbersEl.innerHTML = Array.from({ length: Math.max(lines, 1) }, (_, i) => i + 1).join("\n");
+  }
 }
 
 function loadEditorTemplate() {
-  const dev = CONFIG_MODELS[state.config.currentDevice];
-  let template = "";
-  if (state.config.currentDevice === "isp") {
-    template = `Switch>enable\nSwitch#configure terminal\nSwitch(config)#hostname ISP\nISP(config)#ip routing\nISP(config)#interface g1/0/3\n! Skriv länk mot MLS1 här...\n\nISP(config)#ip route ...`;
-  } else if (state.config.currentDevice === "mls1") {
-    template = `MLS1>en\nMLS1#conf t\nMLS1(config)#ip routing\nMLS1(config)#interface g1/0/2\n! Konfigurera access mot S1 här...\n\nMLS1(config)#interface vlan 10\n! Konfigurera SVI och HSRP här...\n\nMLS1(config)#interface g1/0/3\n! Konfigurera länk mot ISP här...\n\nMLS1(config)#ip route 0.0.0.0 0.0.0.0 ...`;
-  } else {
-    template = `MLS2>en\nMLS2#conf t\nMLS2(config)#ip routing\nMLS2(config)#interface g1/0/2\n! Konfigurera access mot S1 här...\n\nMLS2(config)#interface vlan 10\n! Konfigurera SVI och HSRP här...\n\nMLS2(config)#interface g1/0/4\n! Konfigurera länk mot ISP här...\n\nMLS2(config)#ip route 0.0.0.0 0.0.0.0 ...`;
-  }
+  const dev = getCurrentDeviceModel();
+  if (!dev) return;
+  let template = `! Konfigurationsmall för ${dev.name}\n`;
+  dev.steps.forEach(st => {
+    template += `\n! ${st.title}\n`;
+    if (st.items && st.items.length > 0) {
+      template += `${st.items[0].target}\n! ...\n`;
+    }
+  });
   const textarea = document.getElementById("configCodeEditor");
-  textarea.value = template;
-  updateLineNumbers();
+  if (textarea) {
+    textarea.value = template;
+    updateLineNumbers();
+  }
 }
 
 function renderGuidedInputs() {
-  const dev = CONFIG_MODELS[state.config.currentDevice];
+  const dev = getCurrentDeviceModel();
   const container = document.getElementById("guidedInputsContainer");
+  if (!container || !dev) return;
   container.innerHTML = "";
 
-  dev.guidedItems.forEach((item, idx) => {
-    const row = document.createElement("div");
-    row.className = "guided-line-row";
-    row.innerHTML = `
-      <div class="guided-prompt-prefix">${item.prefix}</div>
-      <input type="text" class="guided-input" data-idx="${idx}" placeholder="${escapeHtml(item.label)}" autocomplete="off" spellcheck="false">
+  let globalLine = 1;
+
+  dev.steps.forEach((step, sIdx) => {
+    const card = document.createElement("div");
+    card.className = "guided-step-card";
+
+    // Step Header
+    const header = document.createElement("div");
+    header.className = "guided-step-header";
+    header.innerHTML = `
+      <div class="guided-step-title">
+        <span class="step-badge" id="stepBadge_${sIdx}">Steg ${sIdx + 1}</span>
+        <strong>${escapeHtml(step.title)}</strong>
+        <span class="step-item-count" style="font-size:0.75rem; color:var(--text-muted);">(${step.items.length} rader)</span>
+      </div>
+      <div class="guided-step-actions">
+        <button class="step-action-btn step-hint-btn" data-step="${sIdx}" title="Fyll i facit för bara detta steg">💡 Fyll steg</button>
+        <button class="step-action-btn step-check-btn" data-step="${sIdx}" title="Rätta bara detta steg">✓ Rätta steg</button>
+      </div>
     `;
-    container.appendChild(row);
+
+    // Step Body
+    const body = document.createElement("div");
+    body.className = "guided-step-body";
+    body.id = `guidedStepBody_${sIdx}`;
+
+    step.items.forEach((item, iIdx) => {
+      const row = document.createElement("div");
+      row.className = "guided-line-row";
+      const lineNum = globalLine++;
+
+      row.innerHTML = `
+        <div class="guided-line-num">${lineNum}</div>
+        <div class="guided-prompt-prefix" title="${escapeHtml(item.prefix)}">${escapeHtml(item.prefix)}</div>
+        <div class="guided-input-wrap">
+          <input type="text" class="guided-input" data-step="${sIdx}" data-idx="${iIdx}" data-target="${escapeHtml(item.target)}" placeholder="${escapeHtml(item.label)}" autocomplete="off" spellcheck="false">
+          <span class="guided-status-icon"></span>
+        </div>
+        <button class="guided-line-hint-btn" title="Visa ledtråd / facit för denna rad">💡</button>
+      `;
+
+      const input = row.querySelector(".guided-input");
+      const icon = row.querySelector(".guided-status-icon");
+      const hintBtn = row.querySelector(".guided-line-hint-btn");
+
+      // Auto check on blur or keydown Enter
+      input.addEventListener("input", () => {
+        input.classList.remove("correct", "wrong");
+        icon.textContent = "";
+        updateGuidedProgressBar();
+      });
+
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          checkSingleInput(input);
+          // Focus next input in the entire list
+          const allInputs = Array.from(document.querySelectorAll(".guided-input"));
+          const currIdx = allInputs.indexOf(input);
+          if (currIdx > -1 && currIdx < allInputs.length - 1) {
+            allInputs[currIdx + 1].focus();
+          } else {
+            // Reached last input, validate all!
+            validateGuidedInputs();
+          }
+        }
+      });
+
+      hintBtn.addEventListener("click", () => {
+        sfx.playClick();
+        input.value = item.target;
+        checkSingleInput(input);
+        updateGuidedProgressBar();
+      });
+
+      body.appendChild(row);
+    });
+
+    card.appendChild(header);
+    card.appendChild(body);
+    container.appendChild(card);
+
+    // Header buttons event listeners
+    const stepHintBtn = header.querySelector(".step-hint-btn");
+    stepHintBtn.addEventListener("click", () => {
+      fillStep(sIdx);
+    });
+
+    const stepCheckBtn = header.querySelector(".step-check-btn");
+    stepCheckBtn.addEventListener("click", () => {
+      validateStep(sIdx);
+    });
   });
+
+  updateGuidedProgressBar();
 }
 
-function validateGuidedInputs() {
-  const dev = CONFIG_MODELS[state.config.currentDevice];
-  const inputs = document.querySelectorAll(".guided-input");
-  let correctCount = 0;
+function checkSingleInput(input) {
+  const target = input.getAttribute("data-target") || "";
+  const icon = input.parentElement.querySelector(".guided-status-icon");
+  const actual = input.value.trim();
 
-  inputs.forEach((input, idx) => {
-    const expected = dev.guidedItems[idx].target.toLowerCase().replace(/\s+/g, " ").trim();
-    const actual = input.value.toLowerCase().replace(/\s+/g, " ").trim();
+  if (!actual) {
+    input.classList.remove("correct", "wrong");
+    if (icon) icon.textContent = "";
+    return false;
+  }
 
-    if (actual === expected || isLooseCommandMatch(actual, expected)) {
-      input.classList.remove("wrong");
-      input.classList.add("correct");
-      correctCount++;
-    } else {
-      input.classList.remove("correct");
-      input.classList.add("wrong");
+  if (isLooseCommandMatch(actual, target)) {
+    input.classList.remove("wrong");
+    input.classList.add("correct");
+    if (icon) {
+      icon.textContent = "✓";
+      icon.style.color = "var(--color-success)";
+    }
+    sfx.playCorrect();
+    return true;
+  } else {
+    input.classList.remove("correct");
+    input.classList.add("wrong");
+    if (icon) {
+      icon.textContent = "✕";
+      icon.style.color = "var(--primary-red)";
+    }
+    sfx.playWrong();
+    return false;
+  }
+}
+
+function validateStep(stepIndex) {
+  const inputs = document.querySelectorAll(`.guided-input[data-step="${stepIndex}"]`);
+  let correct = 0;
+  inputs.forEach(input => {
+    if (checkSingleInput(input)) {
+      correct++;
     }
   });
 
-  if (correctCount === dev.guidedItems.length) {
+  const stepBadge = document.getElementById(`stepBadge_${stepIndex}`);
+  if (stepBadge) {
+    if (correct === inputs.length) {
+      stepBadge.classList.add("complete");
+      stepBadge.textContent = `Steg ${stepIndex + 1} ✓`;
+    } else {
+      stepBadge.classList.remove("complete");
+      stepBadge.textContent = `Steg ${stepIndex + 1} (${correct}/${inputs.length})`;
+    }
+  }
+
+  updateGuidedProgressBar();
+
+  if (correct === inputs.length) {
     sfx.playWin();
-    alert(`🎉 Perfekt! Alla ${correctCount} rader är helt rätt!`);
+  }
+}
+
+function fillStep(stepIndex) {
+  sfx.playClick();
+  const inputs = document.querySelectorAll(`.guided-input[data-step="${stepIndex}"]`);
+  inputs.forEach(input => {
+    input.value = input.getAttribute("data-target");
+    checkSingleInput(input);
+  });
+  const stepBadge = document.getElementById(`stepBadge_${stepIndex}`);
+  if (stepBadge) {
+    stepBadge.classList.add("complete");
+    stepBadge.textContent = `Steg ${stepIndex + 1} ✓`;
+  }
+  updateGuidedProgressBar();
+}
+
+function updateGuidedProgressBar() {
+  const inputs = document.querySelectorAll(".guided-input");
+  const total = inputs.length;
+  if (total === 0) return;
+
+  let filled = 0;
+  let correct = 0;
+  inputs.forEach(inp => {
+    if (inp.value.trim().length > 0) filled++;
+    if (inp.classList.contains("correct")) correct++;
+  });
+
+  const progressText = document.getElementById("guidedProgressText");
+  const progressBarFill = document.getElementById("guidedProgressBarFill");
+
+  if (progressText) {
+    progressText.textContent = `${correct} av ${total} rätt (${filled} ifyllda)`;
+  }
+  if (progressBarFill) {
+    const pct = Math.round((correct / total) * 100);
+    progressBarFill.style.width = `${pct}%`;
+  }
+}
+
+function validateGuidedInputs() {
+  const dev = getCurrentDeviceModel();
+  if (!dev) return;
+
+  const inputs = document.querySelectorAll(".guided-input");
+  let correctCount = 0;
+
+  inputs.forEach(input => {
+    if (checkSingleInput(input)) {
+      correctCount++;
+    }
+  });
+
+  // Update step badges
+  dev.steps.forEach((step, sIdx) => {
+    const stepInputs = document.querySelectorAll(`.guided-input[data-step="${sIdx}"]`);
+    let stepCorrect = 0;
+    stepInputs.forEach(inp => {
+      if (inp.classList.contains("correct")) stepCorrect++;
+    });
+    const stepBadge = document.getElementById(`stepBadge_${sIdx}`);
+    if (stepBadge) {
+      if (stepCorrect === stepInputs.length) {
+        stepBadge.classList.add("complete");
+        stepBadge.textContent = `Steg ${sIdx + 1} ✓`;
+      } else {
+        stepBadge.classList.remove("complete");
+        stepBadge.textContent = `Steg ${sIdx + 1} (${stepCorrect}/${stepInputs.length})`;
+      }
+    }
+  });
+
+  updateGuidedProgressBar();
+
+  if (correctCount === inputs.length) {
+    sfx.playWin();
+    alert(`🎉 Perfekt! Alla ${correctCount} rader i alla ${dev.steps.length} steg är helt rätt för ${dev.name}!`);
   } else {
     sfx.playWrong();
-    alert(`Du hade ${correctCount} av ${dev.guidedItems.length} rätt. De felaktiga raderna är rödmarkerade.`);
+    alert(`Du hade ${correctCount} av ${inputs.length} rätt på ${dev.name}. Felaktiga rader är rödmarkerade.`);
   }
+}
+
+function fillAllGuided() {
+  sfx.playClick();
+  const inputs = document.querySelectorAll(".guided-input");
+  inputs.forEach(input => {
+    input.value = input.getAttribute("data-target");
+    checkSingleInput(input);
+  });
+  const dev = getCurrentDeviceModel();
+  if (dev) {
+    dev.steps.forEach((_, sIdx) => {
+      const stepBadge = document.getElementById(`stepBadge_${sIdx}`);
+      if (stepBadge) {
+        stepBadge.classList.add("complete");
+        stepBadge.textContent = `Steg ${sIdx + 1} ✓`;
+      }
+    });
+  }
+  updateGuidedProgressBar();
 }
 
 function validateUserConfiguration() {
   const userText = document.getElementById("configCodeEditor").value;
-  const dev = CONFIG_MODELS[state.config.currentDevice];
+  const dev = getCurrentDeviceModel();
+  if (!dev) return;
+
   const drawer = document.getElementById("validationDrawer");
   const detailsList = document.getElementById("validationDetailsList");
   const scoreBadge = document.getElementById("drawerScoreBadge");
 
+  if (!drawer || !detailsList || !scoreBadge) return;
   drawer.style.display = "block";
   detailsList.innerHTML = "";
 
   // Normalize user lines
   const userLines = userText
     .split("\n")
-    .map(l => l.replace(/^[a-zA-Z0-9_-]+(\(config[a-z-]*\))?#\s*/i, "").trim()) // strip Cisco prompt prefix if pasted
+    .map(l => l.replace(/^[a-zA-Z0-9_\-\.]+(\([^)]+\))?[#>$]\s*/i, "").trim())
     .filter(l => l && !l.startsWith("!") && !l.startsWith("%"));
 
-  // Check expected key command blocks
-  const expectedItems = dev.guidedItems;
+  const expectedItems = dev.guidedItems || [];
   let matches = 0;
 
   expectedItems.forEach(item => {
-    const target = item.target.toLowerCase();
-    const found = userLines.some(ul => isLooseCommandMatch(ul.toLowerCase(), target));
+    const target = item.target;
+    const found = userLines.some(ul => isLooseCommandMatch(ul, target));
 
     const row = document.createElement("div");
     if (found) {
@@ -2616,7 +3970,7 @@ function validateUserConfiguration() {
     detailsList.appendChild(row);
   });
 
-  const percentage = Math.round((matches / expectedItems.length) * 100);
+  const percentage = expectedItems.length > 0 ? Math.round((matches / expectedItems.length) * 100) : 0;
   scoreBadge.textContent = `${percentage}% rätt (${matches}/${expectedItems.length})`;
 
   if (percentage >= 90) {
@@ -2631,66 +3985,189 @@ function validateUserConfiguration() {
 }
 
 function isLooseCommandMatch(actual, expected) {
-  // Normalize whitespace
-  actual = actual.replace(/\s+/g, " ").trim();
-  expected = expected.replace(/\s+/g, " ").trim();
+  if (!actual || !expected) return false;
 
-  if (actual === expected) return true;
+  let act = actual.toLowerCase().replace(/^[a-z0-9_\-\.]+(\([^)]+\))?[#>$]\s*/i, "").replace(/\s+/g, " ").trim();
+  let exp = expected.toLowerCase().replace(/^[a-z0-9_\-\.]+(\([^)]+\))?[#>$]\s*/i, "").replace(/\s+/g, " ").trim();
 
-  // Common Cisco abbreviations
-  const synonyms = [
-    { from: /\bconf\s+t\b/g, to: "configure terminal" },
-    { from: /\bint\b/g, to: "interface" },
-    { from: /\bsw\s+mo\s+acc\b/g, to: "switchport mode access" },
-    { from: /\bsw\s+acc\s+vlan\b/g, to: "switchport access vlan" },
-    { from: /\bno\s+shut\b/g, to: "no shutdown" },
-    { from: /\bip\s+addr\b/g, to: "ip address" },
-    { from: /\bcopy\s+run\s+start\b/g, to: "copy running-config startup-config" }
-  ];
+  if (act === exp) return true;
 
-  let normAct = actual;
-  synonyms.forEach(s => normAct = normAct.replace(s.from, s.to));
+  const normalize = (cmd) => {
+    return cmd
+      .replace(/\bconf\s+t\b/g, "configure terminal")
+      .replace(/\ben\b/g, "enable")
+      .replace(/\bint\b/g, "interface")
+      .replace(/\bfa\b/g, "fastethernet")
+      .replace(/\bgi\b/g, "gigabitethernet")
+      .replace(/\bpo\b/g, "port-channel")
+      .replace(/\bsw\s+mo\s+acc\b/g, "switchport mode access")
+      .replace(/\bsw\s+mo\s+tr\b/g, "switchport mode trunk")
+      .replace(/\bsw\s+acc\s+vl(an)?\b/g, "switchport access vlan")
+      .replace(/\bsw\s+tr\s+al\s+vl(an)?\b/g, "switchport trunk allowed vlan")
+      .replace(/\bsw\s+tr\s+enc(ap)?\s+dot1q\b/g, "switchport trunk encapsulation dot1q")
+      .replace(/\bno\s+sh(ut)?\b/g, "no shutdown")
+      .replace(/\bsh(ut)?\b/g, "shutdown")
+      .replace(/\bip\s+add?r?\b/g, "ip address")
+      .replace(/\bip\s+def\b/g, "ip default-gateway")
+      .replace(/\bcopy\s+run\s+star?t?\b/g, "copy running-config startup-config")
+      .replace(/\bwr(ite)?(\s+mem(ory)?)?\b/g, "copy running-config startup-config")
+      .replace(/\bspan(ning-tree)?\s+mode\s+rapid(-pvst)?\b/g, "spanning-tree mode rapid-pvst")
+      .replace(/\bstandby\s+(\d+)\s+prio\b/g, "standby $1 priority")
+      .replace(/\bstandby\s+(\d+)\s+pre\b/g, "standby $1 preempt")
+      .replace(/\s+/g, " ")
+      .trim();
+  };
 
-  return normAct === expected;
+  return normalize(act) === normalize(exp);
 }
 
-function renderMiniTopology(deviceKey) {
+function renderMiniTopology(labKey, devKey) {
   const svg = document.getElementById("miniTopoSvg");
-  // Simple illustrative SVG based on active device
-  let colorMls1 = deviceKey === "mls1" ? "#ff2a5f" : "#552233";
-  let colorMls2 = deviceKey === "mls2" ? "#ff9900" : "#553311";
-  let colorIsp = deviceKey === "isp" ? "#e60039" : "#441122";
+  if (!svg) return;
 
-  svg.innerHTML = `
-    <line x1="270" y1="50" x2="130" y2="150" stroke="${deviceKey === 'mls1' || deviceKey === 'isp' ? '#ff2a5f' : '#331520'}" stroke-width="3"/>
-    <line x1="270" y1="50" x2="410" y2="150" stroke="${deviceKey === 'mls2' || deviceKey === 'isp' ? '#ff9900' : '#331520'}" stroke-width="3" stroke-dasharray="4,4"/>
-    <line x1="130" y1="150" x2="270" y2="230" stroke="#00d2ff" stroke-width="2.5"/>
-    <line x1="410" y1="150" x2="270" y2="230" stroke="#00d2ff" stroke-width="2.5"/>
+  const isLabb6 = labKey === "labb6";
+  const d = (devKey || "").toLowerCase();
 
-    <!-- ISP -->
-    <circle cx="270" cy="50" r="24" fill="${colorIsp}" stroke="#fff" stroke-width="2"/>
-    <text x="270" y="55" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">ISP</text>
-    <text x="270" y="22" fill="#a0aec0" font-size="9" text-anchor="middle">203.0.113.1 / .5</text>
+  const getStyle = (name) => {
+    const isActive = d === name.toLowerCase();
+    return {
+      fill: isActive ? "#ff2a5f" : "#14060c",
+      stroke: isActive ? "#ffffff" : "#ff2a5f66",
+      strokeWidth: isActive ? 3 : 1.5,
+      textColor: isActive ? "#ffffff" : "#e0e0e0",
+      glow: isActive ? 'filter="url(#glowFilter)"' : ""
+    };
+  };
 
-    <!-- MLS1 -->
-    <circle cx="130" cy="150" r="28" fill="${colorMls1}" stroke="#fff" stroke-width="${deviceKey === 'mls1' ? '3' : '1.5'}"/>
-    <text x="130" y="154" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">MLS1</text>
-    <text x="130" y="195" fill="#ff99ac" font-size="9" text-anchor="middle">SVI: .2 | Prio 105</text>
+  const ds1St = getStyle("ds1");
+  const ds2St = getStyle("ds2");
+  const s1St = getStyle("s1");
+  const s2St = getStyle("s2");
 
-    <!-- MLS2 -->
-    <circle cx="410" cy="150" r="28" fill="${colorMls2}" stroke="#fff" stroke-width="${deviceKey === 'mls2' ? '3' : '1.5'}"/>
-    <text x="410" y="154" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">MLS2</text>
-    <text x="410" y="195" fill="#ffb300" font-size="9" text-anchor="middle">SVI: .3 | Prio 100</text>
+  if (isLabb6) {
+    const r3St = getStyle("r3");
+    const r4St = getStyle("r4");
 
-    <!-- Virtual Router Center -->
-    <rect x="200" y="135" width="140" height="30" rx="5" fill="#0d1b2a" stroke="#00d2ff" stroke-width="1.2"/>
-    <text x="270" y="154" fill="#00f2fe" font-size="10" font-weight="bold" text-anchor="middle">VIP: 192.168.10.1</text>
+    svg.innerHTML = `
+      <defs>
+        <filter id="glowFilter" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+      </defs>
+      
+      <!-- Connections -->
+      <line x1="170" y1="45" x2="370" y2="45" stroke="#ff2a5f55" stroke-width="2" stroke-dasharray="4,3"/>
+      <line x1="170" y1="45" x2="170" y2="135" stroke="#00d2ff88" stroke-width="2"/>
+      <line x1="370" y1="45" x2="370" y2="135" stroke="#00d2ff88" stroke-width="2"/>
 
-    <!-- S1 -->
-    <rect x="235" y="215" width="70" height="24" rx="4" fill="#1a202c" stroke="#00d2ff" stroke-width="1.5"/>
-    <text x="270" y="231" fill="#fff" font-size="10" text-anchor="middle">S1 (Switch)</text>
-  `;
+      <!-- EtherChannel between DS1 & DS2 -->
+      <line x1="170" y1="131" x2="370" y2="131" stroke="#ffaa00" stroke-width="2"/>
+      <line x1="170" y1="139" x2="370" y2="139" stroke="#ffaa00" stroke-width="2"/>
+      <rect x="245" y="125" width="50" height="20" rx="4" fill="#0d0408" stroke="#ffaa00" stroke-width="1"/>
+      <text x="270" y="139" fill="#ffaa00" font-size="9" font-weight="bold" text-anchor="middle">Po1</text>
+
+      <!-- Distribution to Access -->
+      <line x1="170" y1="135" x2="170" y2="225" stroke="#445566" stroke-width="1.5"/>
+      <line x1="170" y1="135" x2="370" y2="225" stroke="#445566" stroke-width="1.5"/>
+      <line x1="370" y1="135" x2="170" y2="225" stroke="#445566" stroke-width="1.5"/>
+      <line x1="370" y1="135" x2="370" y2="225" stroke="#445566" stroke-width="1.5"/>
+      <line x1="170" y1="225" x2="370" y2="225" stroke="#445566" stroke-width="1.5" stroke-dasharray="3,3"/>
+
+      <!-- R3 -->
+      <circle cx="170" cy="45" r="22" fill="${r3St.fill}" stroke="${r3St.stroke}" stroke-width="${r3St.strokeWidth}" ${r3St.glow}/>
+      <text x="170" y="49" fill="${r3St.textColor}" font-size="11" font-weight="bold" text-anchor="middle">R3</text>
+      <text x="170" y="20" fill="#a0aec0" font-size="9" text-anchor="middle">OSPF Area 0</text>
+
+      <!-- R4 -->
+      <circle cx="370" cy="45" r="22" fill="${r4St.fill}" stroke="${r4St.stroke}" stroke-width="${r4St.strokeWidth}" ${r4St.glow}/>
+      <text x="370" y="49" fill="${r4St.textColor}" font-size="11" font-weight="bold" text-anchor="middle">R4</text>
+      <text x="370" y="20" fill="#a0aec0" font-size="9" text-anchor="middle">OSPF Area 0</text>
+
+      <!-- DS1 -->
+      <circle cx="170" cy="135" r="26" fill="${ds1St.fill}" stroke="${ds1St.stroke}" stroke-width="${ds1St.strokeWidth}" ${ds1St.glow}/>
+      <text x="170" y="139" fill="${ds1St.textColor}" font-size="11" font-weight="bold" text-anchor="middle">DS1</text>
+      <text x="110" y="138" fill="#ff708f" font-size="9" text-anchor="middle">HSRP Active</text>
+
+      <!-- DS2 -->
+      <circle cx="370" cy="135" r="26" fill="${ds2St.fill}" stroke="${ds2St.stroke}" stroke-width="${ds2St.strokeWidth}" ${ds2St.glow}/>
+      <text x="370" y="139" fill="${ds2St.textColor}" font-size="11" font-weight="bold" text-anchor="middle">DS2</text>
+      <text x="430" y="138" fill="#ffaa00" font-size="9" text-anchor="middle">HSRP Standby</text>
+
+      <!-- S1 -->
+      <rect x="140" y="213" width="60" height="26" rx="4" fill="${s1St.fill}" stroke="${s1St.stroke}" stroke-width="${s1St.strokeWidth}" ${s1St.glow}/>
+      <text x="170" y="230" fill="${s1St.textColor}" font-size="10" font-weight="bold" text-anchor="middle">S1</text>
+
+      <!-- S2 -->
+      <rect x="340" y="213" width="60" height="26" rx="4" fill="${s2St.fill}" stroke="${s2St.stroke}" stroke-width="${s2St.strokeWidth}" ${s2St.glow}/>
+      <text x="370" y="230" fill="${s2St.textColor}" font-size="10" font-weight="bold" text-anchor="middle">S2</text>
+    `;
+  } else {
+    // Labb 7
+    const r1St = getStyle("r1");
+    const r2St = getStyle("r2");
+    const r3St = getStyle("r3");
+
+    svg.innerHTML = `
+      <defs>
+        <filter id="glowFilter" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+      </defs>
+
+      <!-- Routers Redundant links -->
+      <line x1="130" y1="45" x2="270" y2="45" stroke="#00d2ff88" stroke-width="2"/>
+      <line x1="270" y1="45" x2="410" y2="45" stroke="#00d2ff88" stroke-width="2"/>
+      <line x1="130" y1="45" x2="170" y2="135" stroke="#00d2ff88" stroke-width="2"/>
+      <line x1="410" y1="45" x2="370" y2="135" stroke="#00d2ff88" stroke-width="2"/>
+
+      <!-- EtherChannel between DS1 & DS2 -->
+      <line x1="170" y1="131" x2="370" y2="131" stroke="#ffaa00" stroke-width="2"/>
+      <line x1="170" y1="139" x2="370" y2="139" stroke="#ffaa00" stroke-width="2"/>
+      <rect x="245" y="125" width="50" height="20" rx="4" fill="#0d0408" stroke="#ffaa00" stroke-width="1"/>
+      <text x="270" y="139" fill="#ffaa00" font-size="9" font-weight="bold" text-anchor="middle">Po1</text>
+
+      <!-- Distribution to Access -->
+      <line x1="170" y1="135" x2="170" y2="225" stroke="#445566" stroke-width="1.5"/>
+      <line x1="170" y1="135" x2="370" y2="225" stroke="#445566" stroke-width="1.5"/>
+      <line x1="370" y1="135" x2="170" y2="225" stroke="#445566" stroke-width="1.5"/>
+      <line x1="370" y1="135" x2="370" y2="225" stroke="#445566" stroke-width="1.5"/>
+      <line x1="170" y1="225" x2="370" y2="225" stroke="#445566" stroke-width="1.5" stroke-dasharray="3,3"/>
+
+      <!-- R1 -->
+      <circle cx="130" cy="45" r="20" fill="${r1St.fill}" stroke="${r1St.stroke}" stroke-width="${r1St.strokeWidth}" ${r1St.glow}/>
+      <text x="130" y="49" fill="${r1St.textColor}" font-size="10" font-weight="bold" text-anchor="middle">R1</text>
+
+      <!-- R3 (Hub/WAN) -->
+      <circle cx="270" cy="45" r="20" fill="${r3St.fill}" stroke="${r3St.stroke}" stroke-width="${r3St.strokeWidth}" ${r3St.glow}/>
+      <text x="270" y="49" fill="${r3St.textColor}" font-size="10" font-weight="bold" text-anchor="middle">R3</text>
+
+      <!-- R2 -->
+      <circle cx="410" cy="45" r="20" fill="${r2St.fill}" stroke="${r2St.stroke}" stroke-width="${r2St.strokeWidth}" ${r2St.glow}/>
+      <text x="410" y="49" fill="${r2St.textColor}" font-size="10" font-weight="bold" text-anchor="middle">R2</text>
+
+      <!-- DS1 -->
+      <circle cx="170" cy="135" r="26" fill="${ds1St.fill}" stroke="${ds1St.stroke}" stroke-width="${ds1St.strokeWidth}" ${ds1St.glow}/>
+      <text x="170" y="139" fill="${ds1St.textColor}" font-size="11" font-weight="bold" text-anchor="middle">DS1</text>
+      <text x="110" y="138" fill="#ff708f" font-size="9" text-anchor="middle">HSRP Active</text>
+
+      <!-- DS2 -->
+      <circle cx="370" cy="135" r="26" fill="${ds2St.fill}" stroke="${ds2St.stroke}" stroke-width="${ds2St.strokeWidth}" ${ds2St.glow}/>
+      <text x="370" y="139" fill="${ds2St.textColor}" font-size="11" font-weight="bold" text-anchor="middle">DS2</text>
+      <text x="430" y="138" fill="#ffaa00" font-size="9" text-anchor="middle">HSRP Standby</text>
+
+      <!-- S1 -->
+      <rect x="140" y="213" width="60" height="26" rx="4" fill="${s1St.fill}" stroke="${s1St.stroke}" stroke-width="${s1St.strokeWidth}" ${s1St.glow}/>
+      <text x="170" y="230" fill="${s1St.textColor}" font-size="10" font-weight="bold" text-anchor="middle">S1</text>
+
+      <!-- S2 -->
+      <rect x="340" y="213" width="60" height="26" rx="4" fill="${s2St.fill}" stroke="${s2St.stroke}" stroke-width="${s2St.strokeWidth}" ${s2St.glow}/>
+      <text x="370" y="230" fill="${s2St.textColor}" font-size="10" font-weight="bold" text-anchor="middle">S2</text>
+    `;
+  }
 }
+
 
 // ==========================================
 // 10. INTERACTIVE TOPOLOGY & NODE INSPECTOR (Tab 4)

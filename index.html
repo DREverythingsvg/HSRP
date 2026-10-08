@@ -89,7 +89,7 @@
         <button class="nav-tab" data-tab="tab-configs" role="tab" id="tabBtn-configs">
           <span class="tab-icon">📝</span>
           <span class="tab-text">Hela Konfigurationerna</span>
-          <span class="tab-badge">ISP • MLS1 • MLS2</span>
+          <span class="tab-badge">Labb 6 & 7</span>
         </button>
         <button class="nav-tab" data-tab="tab-topologies" role="tab" id="tabBtn-topologies">
           <span class="tab-icon">🗺️</span>
@@ -413,24 +413,28 @@
         <div class="pane-title-wrap">
           <div class="pane-icon">📝</div>
           <div>
-            <h2>Hela Konfigurationerna (Skriv & Validera)</h2>
-            <p>Träna på att skriva hela Cisco-konfigurationsblocket för <strong>ISP</strong>, <strong>MLS1</strong> och <strong>MLS2</strong> med omedelbar rad-för-rad rättning!</p>
+            <h2>Konfigurationer & Fyll i Luckor (Labb 6 & Labb 7)</h2>
+            <p>Träna på alla steg och fyll i alla Cisco-kommandon för <strong>Labb 6: Feltolerant nätverk</strong> och <strong>Labb 7: Redundansteknik samverkan</strong> med steg-för-steg rättning!</p>
           </div>
         </div>
-        <div class="pane-controls">
-          <div class="device-pill-selector">
-            <button class="device-btn active" data-device="mls1">
-              <span class="device-role">Prioritet 105 (Aktiv)</span>
-              <strong>MLS1 (VLAN 10 + HSRP)</strong>
+        <div class="pane-controls config-pane-controls">
+          <!-- Lab Selector -->
+          <div class="lab-pill-selector" id="labSelector">
+            <button class="lab-btn active" data-lab="labb6">
+              <span class="lab-badge">Labb 6</span>
+              <strong>🌐 Feltolerant Nätverk</strong>
+              <span class="lab-meta">6 Enheter: S1, S2, DS1, DS2, R3, R4</span>
             </button>
-            <button class="device-btn" data-device="mls2">
-              <span class="device-role">Prioritet 100 (Standby)</span>
-              <strong>MLS2 (VLAN 10 + HSRP)</strong>
+            <button class="lab-btn" data-lab="labb7">
+              <span class="lab-badge">Labb 7</span>
+              <strong>🔄 Redundansteknik Samverkan</strong>
+              <span class="lab-meta">7 Enheter: S1, S2, DS1, DS2, R1, R2, R3</span>
             </button>
-            <button class="device-btn" data-device="isp">
-              <span class="device-role">Floating Static Route</span>
-              <strong>ISP (Internet Router/Switch)</strong>
-            </button>
+          </div>
+
+          <!-- Device Selector (rendered dynamically via JS for active lab) -->
+          <div class="device-pill-selector" id="devicePillSelector">
+            <!-- Dynamically populated via JS -->
           </div>
         </div>
       </div>
@@ -441,7 +445,7 @@
         <div class="config-context-col">
           <div class="card mini-topo-card">
             <div class="mini-topo-header">
-              <h4 id="cfgContextTitle">MLS1 Konfiguration & Nätverksroll</h4>
+              <h4 id="cfgContextTitle">DS1 Konfiguration & Nätverksroll</h4>
               <span class="badge badge-accent" id="cfgRoleBadge">HSRP Active</span>
             </div>
             
@@ -460,8 +464,8 @@
             </div>
 
             <div class="cfg-callout">
-              <strong>Viktigt till provet:</strong>
-              <p id="cfgImportantNote">MLS1 har prioritet 105 och 'standby 10 track g1/0/3'. Om länken mot ISP bryts sänks prioriteten så att MLS2 tar över!</p>
+              <strong>Viktigt till provet & labben:</strong>
+              <p id="cfgImportantNote">Laddar information...</p>
             </div>
           </div>
         </div>
@@ -471,19 +475,46 @@
           <div class="editor-card card">
             <div class="editor-header">
               <div class="editor-tabs">
-                <button class="ed-tab active" id="editorWriteTab">✍️ Skriv / Redigera</button>
-                <button class="ed-tab" id="editorGuidedTab">🧩 Guidat Läge (Luckor)</button>
+                <button class="ed-tab active" id="editorGuidedTab">🧩 Fyll i Luckor (Alla Steg)</button>
+                <button class="ed-tab" id="editorWriteTab">✍️ Skriv / Redigera (CLI)</button>
                 <button class="ed-tab" id="editorSolutionTab">👁️ Visa Facit</button>
               </div>
               <div class="editor-tools">
+                <button class="btn btn-ghost btn-sm" id="fillAllGuidedBtn" title="Fyll i alla svar för denna enhet">💡 Fyll i Facit</button>
                 <button class="btn btn-ghost btn-sm" id="loadTemplateBtn" title="Ladda grundmall">📋 Ladda Mall</button>
-                <button class="btn btn-ghost btn-sm" id="clearEditorBtn" title="Töm rutan">🗑️ Rensa</button>
-                <button class="btn btn-ghost btn-sm" id="copySolutionBtn" title="Kopiera facit">📋 Kopiera</button>
+                <button class="btn btn-ghost btn-sm" id="clearEditorBtn" title="Töm luckor eller text">🗑️ Rensa</button>
+                <button class="btn btn-ghost btn-sm" id="copySolutionBtn" title="Kopiera fullt Cisco CLI-block">📋 Kopiera CLI</button>
+              </div>
+            </div>
+
+            <!-- Guided Fill-in View (DEFAULT ACTIVE) -->
+            <div id="editorGuidedView" class="editor-view-mode" style="display: block;">
+              <div class="guided-instructions">
+                <span>Fyll i alla Cisco-kommandon i luckorna nedan för respektive steg. Tryck <strong>Enter</strong> för att hoppa till nästa rad!</span>
+                <span class="guided-hint-badge" id="guidedDevSummaryBadge">Alla steg aktiva</span>
+              </div>
+              <div class="guided-inputs-container" id="guidedInputsContainer">
+                <!-- Dynamically generated step-by-step guided inputs -->
+              </div>
+              <div class="editor-footer">
+                <div class="guided-progress-wrap">
+                  <div class="guided-progress-text" id="guidedProgressText">0 / 0 luckor ifyllda</div>
+                  <div class="guided-progress-bar-bg">
+                    <div class="guided-progress-bar-fill" id="guidedProgressBarFill" style="width: 0%;"></div>
+                  </div>
+                </div>
+                <div class="guided-actions">
+                  <button class="btn btn-ghost btn-sm" id="showHintsBtn">💡 Visa Alla Svar</button>
+                  <button class="btn btn-primary" id="checkGuidedBtn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    Rätta Alla Luckor
+                  </button>
+                </div>
               </div>
             </div>
 
             <!-- Free Text Editor View -->
-            <div id="editorTextView" class="editor-view-mode">
+            <div id="editorTextView" class="editor-view-mode" style="display: none;">
               <div class="editor-textarea-wrapper">
                 <div class="line-numbers" id="editorLineNumbers">1</div>
                 <textarea id="configCodeEditor" class="code-textarea" spellcheck="false" placeholder="Skriv in Cisco-konfigurationen här rad för rad...
@@ -502,19 +533,6 @@ interface g1/0/2
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
                   Validera Konfiguration
                 </button>
-              </div>
-            </div>
-
-            <!-- Guided Fill-in View -->
-            <div id="editorGuidedView" class="editor-view-mode" style="display: none;">
-              <div class="guided-instructions">
-                Fyll i de saknade kommandona eller parametrarna i luckorna nedan och tryck på "Rätta":
-              </div>
-              <div class="guided-inputs-container" id="guidedInputsContainer">
-                <!-- Dynamically generated guided inputs -->
-              </div>
-              <div class="editor-footer">
-                <button class="btn btn-primary" id="checkGuidedBtn">Rätta Luckor</button>
               </div>
             </div>
 
