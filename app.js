@@ -2495,7 +2495,10 @@ const state = {
     scoreCorrect: 0,
     scoreWrong: 0,
     streak: 0,
-    answered: false
+    answered: false,
+    wrongQuestions: [],
+    currentWrongQuestions: [],
+    isRetrySession: false
   },
   // Diginto Quiz
   diginto: {
@@ -2505,7 +2508,10 @@ const state = {
     scoreCorrect: 0,
     scoreWrong: 0,
     streak: 0,
-    answered: false
+    answered: false,
+    wrongQuestions: [],
+    currentWrongQuestions: [],
+    isRetrySession: false
   },
   // Commands
   commands: {
@@ -2588,6 +2594,7 @@ function initSoundToggle() {
 function initQuiz() {
   const restartBtn = document.getElementById("restartQuizBtn");
   const restartFinishedBtn = document.getElementById("restartFinishedQuizBtn");
+  const retryWrongBtn = document.getElementById("retryWrongQuizBtn");
   const categoryFilter = document.getElementById("quizCategoryFilter");
   const nextBtn = document.getElementById("nextQuestionBtn");
   const skipBtn = document.getElementById("skipQuestionBtn");
@@ -2602,6 +2609,13 @@ function initQuiz() {
     startNewQuizSession();
   });
 
+  if (retryWrongBtn) {
+    retryWrongBtn.addEventListener("click", () => {
+      sfx.playClick();
+      startRetryQuizSession();
+    });
+  }
+
   categoryFilter.addEventListener("change", (e) => {
     state.quiz.category = e.target.value;
     startNewQuizSession();
@@ -2613,17 +2627,35 @@ function initQuiz() {
   });
 
   skipBtn.addEventListener("click", () => {
+    if (!state.quiz.answered) {
+      const currentQ = state.quiz.shuffledQuestions[state.quiz.currentIndex];
+      if (currentQ) {
+        const origQ = MASTER_QUESTIONS.find(q => q.id === currentQ.id) || currentQ;
+        if (!state.quiz.currentWrongQuestions.some(q => q.id === origQ.id)) {
+          state.quiz.currentWrongQuestions.push(origQ);
+        }
+      }
+      state.quiz.scoreWrong++;
+    }
     advanceQuizQuestion();
   });
 
   startNewQuizSession();
 }
 
-function startNewQuizSession() {
+function startRetryQuizSession() {
+  if (!state.quiz.wrongQuestions || state.quiz.wrongQuestions.length === 0) return;
+  startNewQuizSession([...state.quiz.wrongQuestions]);
+}
+
+function startNewQuizSession(customPool = null) {
   // Filter questions
-  let pool = MASTER_QUESTIONS;
-  if (state.quiz.category !== "all") {
-    pool = pool.filter(q => q.category === state.quiz.category);
+  let pool = customPool;
+  if (!pool) {
+    pool = MASTER_QUESTIONS;
+    if (state.quiz.category !== "all") {
+      pool = pool.filter(q => q.category === state.quiz.category);
+    }
   }
 
   // Shuffle questions randomly
@@ -2644,6 +2676,8 @@ function startNewQuizSession() {
   state.quiz.scoreWrong = 0;
   state.quiz.streak = 0;
   state.quiz.answered = false;
+  state.quiz.currentWrongQuestions = [];
+  state.quiz.isRetrySession = !!customPool;
 
   updateGlobalScore();
 
@@ -2667,7 +2701,9 @@ function renderCurrentQuizQuestion() {
   const currentNum = state.quiz.currentIndex + 1;
   const percent = (currentNum / total) * 100;
 
-  document.getElementById("quizStepText").textContent = `Fråga ${currentNum} av ${total}`;
+  document.getElementById("quizStepText").textContent = state.quiz.isRetrySession
+    ? `Repetition: Fråga ${currentNum} av ${total} (Felaktiga)`
+    : `Fråga ${currentNum} av ${total}`;
   document.getElementById("quizCatBadge").textContent = getCategoryName(currentQ.category);
   document.getElementById("quizScoreDisplay").textContent = `Rätt: ${state.quiz.scoreCorrect} | Fel: ${state.quiz.scoreWrong}`;
   document.getElementById("quizProgressBar").style.width = `${percent}%`;
@@ -2725,6 +2761,12 @@ function handleOptionSelected(selectedIdx, clickedBtn) {
     state.quiz.scoreWrong++;
     state.quiz.streak = 0;
     state.streak = 0;
+
+    // Save for retry round
+    const origQ = MASTER_QUESTIONS.find(q => q.id === currentQ.id) || currentQ;
+    if (!state.quiz.currentWrongQuestions.some(q => q.id === origQ.id)) {
+      state.quiz.currentWrongQuestions.push(origQ);
+    }
   }
 
   // Update in-card score display immediately
@@ -2777,20 +2819,46 @@ function showQuizFinished() {
   const finishedCard = document.getElementById("quizFinishedCard");
   finishedCard.style.display = "block";
 
+  // Transfer this round's wrong questions to wrongQuestions
+  state.quiz.wrongQuestions = [...state.quiz.currentWrongQuestions];
+
   const total = state.quiz.shuffledQuestions.length;
   const correct = state.quiz.scoreCorrect;
+  const wrongCount = state.quiz.scoreWrong;
   const pct = Math.round((correct / total) * 100);
 
   sfx.playWin();
+
+  const retryBtn = document.getElementById("retryWrongQuizBtn");
+  const restartBtn = document.getElementById("restartFinishedQuizBtn");
+  if (retryBtn) {
+    if (state.quiz.wrongQuestions.length > 0) {
+      retryBtn.style.display = "inline-flex";
+      retryBtn.innerHTML = `🔄 Gör om felaktiga frågor (${state.quiz.wrongQuestions.length} st)`;
+      retryBtn.title = `Träna direkt på de ${state.quiz.wrongQuestions.length} frågor du svarade fel på`;
+      if (restartBtn) restartBtn.className = "btn btn-outline btn-large";
+    } else {
+      retryBtn.style.display = "none";
+      if (restartBtn) restartBtn.className = "btn btn-primary btn-large";
+    }
+  }
+
+  const isRetry = state.quiz.isRetrySession;
+  const finTitle = finishedCard.querySelector("h3");
+  if (finTitle) {
+    finTitle.textContent = isRetry
+      ? (wrongCount === 0 ? "🎉 Fantastiskt! Alla felaktiga frågor är nu rättade!" : "Bra kämpat med repetitionen!")
+      : "Snyggt jobbat! Omgången är klar!";
+  }
 
   document.getElementById("finalScoreLead").textContent = `Du fick ${correct} av ${total} rätt (${pct}%)`;
   document.getElementById("finalScoreBreakdown").innerHTML = `
     <div style="margin-bottom: 0.5rem;"><strong>Resultat:</strong></div>
     <div>✅ Antal rätt: <strong>${correct}</strong></div>
-    <div>❌ Antal fel: <strong>${state.quiz.scoreWrong}</strong></div>
+    <div>❌ Antal fel: <strong>${wrongCount}</strong></div>
     <div>🔥 Högsta streak i omgången: <strong>${state.quiz.streak}</strong></div>
     <div style="margin-top: 0.8rem; font-size: 0.88rem; color: #ff99ac;">
-      ${pct >= 85 ? '🌟 Fantastiskt! Du är helt redo för provet på FHRP & HSRP!' : pct >= 60 ? '👍 Bra jobbat! Träna lite mer på detaljer som MAC-adresser och VRRP för full pott.' : '💪 Fortsätt öva! Kolla fliken "Snabbguide" och kör en ny omgång.'}
+      ${wrongCount === 0 ? '🌟 Full pott! Alla frågor satt som en smäck!' : pct >= 85 ? '🌟 Mycket bra! Gör om de sista felaktiga frågorna med knappen nedan för 100%!' : pct >= 60 ? '👍 Bra jobbat! Klicka på "Gör om felaktiga frågor" nedan för att nöta in de du missade.' : '💪 Fortsätt kämpa! Gör om dina felaktiga frågor direkt för att lära dig rätt svar.'}
     </div>
   `;
 }
@@ -2827,6 +2895,7 @@ function getCategoryName(cat) {
 function initDigintoQuiz() {
   const restartBtn = document.getElementById("restartDigintoBtn");
   const restartFinishedBtn = document.getElementById("restartFinishedDigintoBtn");
+  const retryWrongBtn = document.getElementById("retryWrongDigintoBtn");
   const categoryFilter = document.getElementById("digintoCategoryFilter");
   const nextBtn = document.getElementById("nextDigintoBtn");
   const skipBtn = document.getElementById("skipDigintoBtn");
@@ -2842,6 +2911,13 @@ function initDigintoQuiz() {
     restartFinishedBtn.addEventListener("click", () => {
       sfx.playClick();
       startNewDigintoSession();
+    });
+  }
+
+  if (retryWrongBtn) {
+    retryWrongBtn.addEventListener("click", () => {
+      sfx.playClick();
+      startRetryDigintoSession();
     });
   }
 
@@ -2861,6 +2937,16 @@ function initDigintoQuiz() {
 
   if (skipBtn) {
     skipBtn.addEventListener("click", () => {
+      if (!state.diginto.answered) {
+        const currentQ = state.diginto.shuffledQuestions[state.diginto.currentIndex];
+        if (currentQ) {
+          const origQ = DIGINTO_QUESTIONS.find(q => q.id === currentQ.id) || currentQ;
+          if (!state.diginto.currentWrongQuestions.some(q => q.id === origQ.id)) {
+            state.diginto.currentWrongQuestions.push(origQ);
+          }
+        }
+        state.diginto.scoreWrong++;
+      }
       advanceDigintoQuestion();
     });
   }
@@ -2868,10 +2954,18 @@ function initDigintoQuiz() {
   startNewDigintoSession();
 }
 
-function startNewDigintoSession() {
-  let pool = DIGINTO_QUESTIONS;
-  if (state.diginto.category !== "all") {
-    pool = pool.filter(q => q.category === state.diginto.category);
+function startRetryDigintoSession() {
+  if (!state.diginto.wrongQuestions || state.diginto.wrongQuestions.length === 0) return;
+  startNewDigintoSession([...state.diginto.wrongQuestions]);
+}
+
+function startNewDigintoSession(customPool = null) {
+  let pool = customPool;
+  if (!pool) {
+    pool = DIGINTO_QUESTIONS;
+    if (state.diginto.category !== "all") {
+      pool = pool.filter(q => q.category === state.diginto.category);
+    }
   }
 
   // Automatically shuffle both questions and answer choices
@@ -2891,6 +2985,8 @@ function startNewDigintoSession() {
   state.diginto.scoreWrong = 0;
   state.diginto.streak = 0;
   state.diginto.answered = false;
+  state.diginto.currentWrongQuestions = [];
+  state.diginto.isRetrySession = !!customPool;
 
   updateGlobalScore();
 
@@ -2921,7 +3017,11 @@ function renderCurrentDigintoQuestion() {
   const scoreDisp = document.getElementById("digintoScoreDisplay");
   const progBar = document.getElementById("digintoProgressBar");
 
-  if (stepText) stepText.textContent = `Fråga ${currentNum} av ${total}`;
+  if (stepText) {
+    stepText.textContent = state.diginto.isRetrySession
+      ? `Repetition: Fråga ${currentNum} av ${total} (Felaktiga)`
+      : `Fråga ${currentNum} av ${total}`;
+  }
   if (catBadge) catBadge.textContent = getDigintoCategoryName(currentQ.category);
   if (scoreDisp) scoreDisp.textContent = `Rätt: ${state.diginto.scoreCorrect} | Fel: ${state.diginto.scoreWrong}`;
   if (progBar) progBar.style.width = `${percent}%`;
@@ -2989,6 +3089,12 @@ function handleDigintoOptionSelected(selectedIdx, clickedBtn) {
     state.diginto.scoreWrong++;
     state.diginto.streak = 0;
     state.streak = 0;
+
+    // Save for retry round
+    const origQ = DIGINTO_QUESTIONS.find(q => q.id === currentQ.id) || currentQ;
+    if (!state.diginto.currentWrongQuestions.some(q => q.id === origQ.id)) {
+      state.diginto.currentWrongQuestions.push(origQ);
+    }
   }
 
   // Update in-card score display immediately
@@ -3047,11 +3153,37 @@ function showDigintoFinished() {
   if (card) card.style.display = "none";
   if (finCard) finCard.style.display = "block";
 
+  // Transfer missed questions
+  state.diginto.wrongQuestions = [...state.diginto.currentWrongQuestions];
+
   const total = state.diginto.shuffledQuestions.length;
   const correct = state.diginto.scoreCorrect;
+  const wrongCount = state.diginto.scoreWrong;
   const pct = Math.round((correct / total) * 100);
 
   sfx.playWin();
+
+  const retryBtn = document.getElementById("retryWrongDigintoBtn");
+  const restartBtn = document.getElementById("restartFinishedDigintoBtn");
+  if (retryBtn) {
+    if (state.diginto.wrongQuestions.length > 0) {
+      retryBtn.style.display = "inline-flex";
+      retryBtn.innerHTML = `🔄 Gör om felaktiga frågor (${state.diginto.wrongQuestions.length} st)`;
+      retryBtn.title = `Träna direkt på de ${state.diginto.wrongQuestions.length} frågor du svarade fel på`;
+      if (restartBtn) restartBtn.className = "btn btn-outline btn-large";
+    } else {
+      retryBtn.style.display = "none";
+      if (restartBtn) restartBtn.className = "btn btn-primary btn-large";
+    }
+  }
+
+  const isRetry = state.diginto.isRetrySession;
+  const finTitle = finCard.querySelector("h3");
+  if (finTitle) {
+    finTitle.textContent = isRetry
+      ? (wrongCount === 0 ? "🎉 Mästerligt! Alla felaktiga Diginto-frågor är nu rättade!" : "Bra kämpat med repetitionen!")
+      : "Grymt jobbat! Diginto-omgången är slutförd!";
+  }
 
   const lead = document.getElementById("digintoFinalScoreLead");
   const breakdown = document.getElementById("digintoFinalScoreBreakdown");
@@ -3061,10 +3193,10 @@ function showDigintoFinished() {
     breakdown.innerHTML = `
       <div style="margin-bottom: 0.5rem;"><strong>Resultat för Diginto FHRP & HSRP:</strong></div>
       <div>✅ Antal rätt: <strong>${correct}</strong></div>
-      <div>❌ Antal fel: <strong>${state.diginto.scoreWrong}</strong></div>
+      <div>❌ Antal fel: <strong>${wrongCount}</strong></div>
       <div>🔥 Högsta streak i omgången: <strong>${state.diginto.streak}</strong></div>
       <div style="margin-top: 0.8rem; font-size: 0.88rem; color: #ff99ac;">
-        ${pct >= 85 ? '🌟 Mästerligt! Du behärskar alla Diginto-koncept inför provet!' : pct >= 60 ? '👍 Bra jobbat! Repetera reglerna för preemption och timers för maximal förståelse.' : '💪 Fortsätt öva! Läs igenom Diginto-länkarna och kör en ny omgång.'}
+        ${wrongCount === 0 ? '🌟 Full pott! Du har bemästrat alla frågorna i denna omgång!' : pct >= 85 ? '🌟 Mästerligt! Repetera de sista felaktiga frågorna med knappen nedan för 100%!' : pct >= 60 ? '👍 Bra jobbat! Klicka på "Gör om felaktiga frågor" för att nöta in de du missade.' : '💪 Fortsätt öva! Gör om dina felaktiga frågor direkt för att lära dig rätt svar.'}
       </div>
     `;
   }

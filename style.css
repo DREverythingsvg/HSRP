@@ -891,6 +891,22 @@ body {
   flex-wrap: wrap;
 }
 
+.btn-glow-retry {
+  background: linear-gradient(135deg, #ff2a5f 0%, #ff557c 100%) !important;
+  color: #fff !important;
+  border: 1px solid #ff7595 !important;
+  box-shadow: 0 0 20px rgba(255, 42, 95, 0.45);
+  font-weight: 800;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-glow-retry:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 30px rgba(255, 42, 95, 0.75);
+  background: linear-gradient(135deg, #ff1750 0%, #ff426e 100%) !important;
+}
+
 /* ========================================================
    TAB 2: TRÄNA KOMMANDON (CLI & FLASHCARDS)
    ======================================================== */

@@ -202,7 +202,10 @@
             <p class="final-score-lead" id="finalScoreLead">Du fick 22 av 25 rätt (88%)</p>
             <div class="score-breakdown" id="finalScoreBreakdown"></div>
             <div class="finished-actions">
-              <button id="restartFinishedQuizBtn" class="btn btn-primary btn-large">
+              <button id="retryWrongQuizBtn" class="btn btn-primary btn-large btn-glow-retry" style="display: none;">
+                🔄 Gör om felaktiga frågor (0 st)
+              </button>
+              <button id="restartFinishedQuizBtn" class="btn btn-outline btn-large">
                 🔀 Starta Ny Slumpad Omgång
               </button>
               <button class="btn btn-outline" onclick="document.getElementById('tabBtn-diginto').click()">
@@ -299,7 +302,10 @@
             <p class="final-score-lead" id="digintoFinalScoreLead">Du fick 18 av 20 rätt (90%)</p>
             <div class="score-breakdown" id="digintoFinalScoreBreakdown"></div>
             <div class="finished-actions">
-              <button id="restartFinishedDigintoBtn" class="btn btn-primary btn-large">
+              <button id="retryWrongDigintoBtn" class="btn btn-primary btn-large btn-glow-retry" style="display: none;">
+                🔄 Gör om felaktiga frågor (0 st)
+              </button>
+              <button id="restartFinishedDigintoBtn" class="btn btn-outline btn-large">
                 🔀 Starta Ny Slumpad Omgång
               </button>
               <button class="btn btn-outline" onclick="document.getElementById('tabBtn-commands').click()">
