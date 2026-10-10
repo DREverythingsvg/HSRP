@@ -1237,7 +1237,7 @@ const COMMANDS_DB = [
     context: "MLS1(config-if)#",
     prompt: "MLS1(config-if)#",
     canonical: "standby 10 track gigabitEthernet 1/0/5 20",
-    validRegex: /^standby\s+10\s+track\s+(g|gi|gigabitethernet)?\s*1\/0\/5\s+20$/i
+    validRegex: /^standby\s+10\s+track\s+(?:interface\s+|int\s+)?(g|gi|gigabitethernet)?\s*1\/0\/5\s+20$/i
   },
   {
     id: "cmd-timers",
@@ -2518,6 +2518,7 @@ const state = {
     currentLab: "labb6",
     currentDevice: "ds1",
     mode: "guided",
+    hidePlaceholders: false,
     savedValues: {}
   },
   // Subnetting Trainer
@@ -3341,6 +3342,13 @@ function initConfigWorkspace() {
   if (solTab) solTab.addEventListener("click", () => setEditorMode("solution"));
 
   // Editor tool buttons
+  const togglePlaceholdersBtn = document.getElementById("togglePlaceholdersBtn");
+  if (togglePlaceholdersBtn) {
+    togglePlaceholdersBtn.addEventListener("click", () => {
+      toggleGuidedPlaceholders();
+    });
+  }
+
   const fillAllBtn = document.getElementById("fillAllGuidedBtn");
   if (fillAllBtn) {
     fillAllBtn.addEventListener("click", () => {
@@ -3603,11 +3611,43 @@ function loadEditorTemplate() {
   }
 }
 
+function toggleGuidedPlaceholders() {
+  sfx.playClick();
+  state.config.hidePlaceholders = !state.config.hidePlaceholders;
+  const isHidden = state.config.hidePlaceholders;
+
+  const btn = document.getElementById("togglePlaceholdersBtn");
+  if (btn) {
+    btn.innerHTML = isHidden ? "👁️ Visa Ledtrådar" : "🙈 Dölj Ledtrådar";
+    btn.classList.toggle("active", isHidden);
+    btn.title = isHidden ? "Visa texten i luckorna igen" : "Dölj texten i luckorna (t.ex. 'Tillåt VLAN 10 och 20')";
+  }
+
+  const container = document.getElementById("guidedInputsContainer");
+  if (container) {
+    container.classList.toggle("hide-placeholders", isHidden);
+  }
+
+  const inputs = document.querySelectorAll(".guided-input");
+  inputs.forEach(inp => {
+    inp.placeholder = isHidden ? "" : (inp.getAttribute("data-label") || "");
+  });
+}
+
 function renderGuidedInputs() {
   const dev = getCurrentDeviceModel();
   const container = document.getElementById("guidedInputsContainer");
   if (!container || !dev) return;
   container.innerHTML = "";
+
+  const isHidden = !!state.config.hidePlaceholders;
+  container.classList.toggle("hide-placeholders", isHidden);
+
+  const toggleBtn = document.getElementById("togglePlaceholdersBtn");
+  if (toggleBtn) {
+    toggleBtn.innerHTML = isHidden ? "👁️ Visa Ledtrådar" : "🙈 Dölj Ledtrådar";
+    toggleBtn.classList.toggle("active", isHidden);
+  }
 
   let globalLine = 1;
 
@@ -3641,11 +3681,13 @@ function renderGuidedInputs() {
       row.className = "guided-line-row";
       const lineNum = globalLine++;
 
+      const placeholderText = isHidden ? "" : escapeHtml(item.label);
+
       row.innerHTML = `
         <div class="guided-line-num">${lineNum}</div>
         <div class="guided-prompt-prefix" title="${escapeHtml(item.prefix)}">${escapeHtml(item.prefix)}</div>
         <div class="guided-input-wrap">
-          <input type="text" class="guided-input" data-step="${sIdx}" data-idx="${iIdx}" data-target="${escapeHtml(item.target)}" placeholder="${escapeHtml(item.label)}" autocomplete="off" spellcheck="false">
+          <input type="text" class="guided-input" data-step="${sIdx}" data-idx="${iIdx}" data-target="${escapeHtml(item.target)}" data-label="${escapeHtml(item.label)}" placeholder="${placeholderText}" autocomplete="off" spellcheck="false">
           <span class="guided-status-icon"></span>
         </div>
         <button class="guided-line-hint-btn" title="Visa ledtråd / facit för denna rad">💡</button>
@@ -3928,33 +3970,101 @@ function isLooseCommandMatch(actual, expected) {
 
   if (act === exp) return true;
 
-  const normalize = (cmd) => {
-    return cmd
+  const normalize = (cmd, targetExp) => {
+    let s = cmd.toLowerCase().trim();
+
+    // Standardize spacing around commas (e.g. 10, 20 -> 10,20)
+    s = s.replace(/,\s+/g, ",");
+
+    // Basic management & system commands
+    s = s
       .replace(/\bconf\s+t\b/g, "configure terminal")
       .replace(/\ben\b/g, "enable")
-      .replace(/\bint\b/g, "interface")
-      .replace(/\bfa\b/g, "fastethernet")
-      .replace(/\bgi\b/g, "gigabitethernet")
-      .replace(/\bpo\b/g, "port-channel")
-      .replace(/\bsw\s+mo\s+acc\b/g, "switchport mode access")
-      .replace(/\bsw\s+mo\s+tr\b/g, "switchport mode trunk")
-      .replace(/\bsw\s+acc\s+vl(an)?\b/g, "switchport access vlan")
-      .replace(/\bsw\s+tr\s+al\s+vl(an)?\b/g, "switchport trunk allowed vlan")
-      .replace(/\bsw\s+tr\s+enc(ap)?\s+dot1q\b/g, "switchport trunk encapsulation dot1q")
-      .replace(/\bno\s+sh(ut)?\b/g, "no shutdown")
-      .replace(/\bsh(ut)?\b/g, "shutdown")
+      .replace(/\bdesc(ription)?\b/g, "description")
+      .replace(/\bno\s+sh(ut(down)?)?\b/g, "NO_SHUT_PLACEHOLDER")
+      .replace(/\bsh(ut(down)?)?\b/g, "shutdown")
+      .replace(/NO_SHUT_PLACEHOLDER/g, "no shutdown")
       .replace(/\bip\s+add?r?\b/g, "ip address")
-      .replace(/\bip\s+def\b/g, "ip default-gateway")
+      .replace(/\bip\s+def(-gw|ault-gw)?\b/g, "ip default-gateway")
       .replace(/\bcopy\s+run\s+star?t?\b/g, "copy running-config startup-config")
       .replace(/\bwr(ite)?(\s+mem(ory)?)?\b/g, "copy running-config startup-config")
-      .replace(/\bspan(ning-tree)?\s+mode\s+rapid(-pvst)?\b/g, "spanning-tree mode rapid-pvst")
-      .replace(/\bstandby\s+(\d+)\s+prio\b/g, "standby $1 priority")
-      .replace(/\bstandby\s+(\d+)\s+pre\b/g, "standby $1 preempt")
-      .replace(/\s+/g, " ")
-      .trim();
+      .replace(/\bwrite\s+memory\b/g, "copy running-config startup-config");
+
+    // Spanning tree modes & variants (e.g. rapidpvst, rapid-pvst, span mode)
+    s = s
+      .replace(/\bspan(ning-tree)?\s+mode\s+rapid-?(pvst\+?)?\b/g, "spanning-tree mode rapid-pvst")
+      .replace(/\bspan(ning-tree)?\s+portfast\b/g, "spanning-tree portfast")
+      .replace(/\bspan(ning-tree)?\s+bpdu(guard)?\s+en(able)?\b/g, "spanning-tree bpduguard enable")
+      .replace(/\bspan(ning-tree)?\s+vlan\s+(\d+)\s+root\s+pri(mary)?\b/g, "spanning-tree vlan $2 root primary")
+      .replace(/\bspan(ning-tree)?\s+vlan\s+(\d+)\s+root\s+sec(ondary)?\b/g, "spanning-tree vlan $2 root secondary");
+
+    // Switchport variants
+    s = s
+      .replace(/\bsw(itchport)?\s+mo(de)?\s+acc(ess)?\b/g, "switchport mode access")
+      .replace(/\bsw(itchport)?\s+mo(de)?\s+tr(unk)?\b/g, "switchport mode trunk")
+      .replace(/\bsw(itchport)?\s+acc(ess)?\s+vl(an)?\b/g, "switchport access vlan")
+      .replace(/\bsw(itchport)?\s+tr(unk)?\s+al(lowed)?\s+vl(an)?\b/g, "switchport trunk allowed vlan")
+      .replace(/\bsw(itchport)?\s+tr(unk)?\s+enc(ap)?(\s+dot1q)?\b/g, "switchport trunk encapsulation dot1q")
+      .replace(/\bno\s+sw(itchport)?\b/g, "no switchport");
+
+    // Etherchannel
+    s = s
+      .replace(/\bchan(nel-group)?\s+(\d+)\s+mode\s+act(ive)?\b/g, "channel-group $2 mode active");
+
+    // Passive-interface
+    s = s
+      .replace(/\bpassive-int(erface)?\s+vlan\s*(\d+)\b/g, "passive-interface vlan $2")
+      .replace(/\bpassive-interface\s+vlan(\d+)\b/g, "passive-interface vlan $1");
+
+    // Standby priority / preempt / timers / version
+    s = s
+      .replace(/\bstandby\s+(\d+)\s+pri(o(rity)?)?\b/g, "standby $1 priority")
+      .replace(/\bstandby\s+(\d+)\s+pre(empt)?\b/g, "standby $1 preempt")
+      .replace(/\bstandby\s+(\d+)\s+pre(empt)?\s+delay\s+min(imum)?\b/g, "standby $1 preempt delay minimum")
+      .replace(/\bstandby\s+(\d+)\s+ver(sion)?\s+2\b/g, "standby version 2")
+      .replace(/\bstandby\s+ver(sion)?\s+2\b/g, "standby version 2");
+
+    // Interface shorthands with slot/port numbers or ranges
+    // e.g. g1/0/1, gi1/0/1, g 1/0/1, gigabitethernet 1/0/1 -> gigabitethernet 1/0/1
+    s = s
+      .replace(/\b(?:gigabitethernet|gigabit|gig|gi|g)\s*(\d+(?:\/\d+)*(?:-\d+)?)\b/g, "gigabitethernet $1")
+      .replace(/\b(?:fastethernet|fast|fa|f)\s*(\d+(?:\/\d+)*(?:-\d+)?)\b/g, "fastethernet $1")
+      .replace(/\b(?:port-channel|port|po)\s*(\d+(?:-\d+)?)\b/g, "port-channel $1")
+      .replace(/\b(?:loopback|lo)\s*(\d+)\b/g, "loopback $1")
+      .replace(/\b(?:vlan|vl)\s*(\d+)\b/g, "vlan $1");
+
+    // Track interface syntax (e.g. track 1 interface g1/0/5 line-protocol or track 1 g1/0/5 line-protocol)
+    s = s.replace(/\btrack\s+(\d+)\s+(?:interface\s+|int\s+)?(gigabitethernet|fastethernet)\b/g, "track $1 interface $2");
+
+    // Standby track interface (e.g. standby 10 track g1/0/5 or standby 10 track interface g1/0/5)
+    s = s.replace(/\bstandby\s+(\d+)\s+track\s+(?:interface\s+|int\s+)?(gigabitethernet|fastethernet)\b/g, "standby $1 track $2");
+
+    // Interface range prefix (e.g. range g1/0/3-4, int ran g1/0/3-4, interface range g1/0/3-4)
+    s = s.replace(/\b(?:(?:interface|int)\s+)?(?:range|ran|r)\s+(gigabitethernet|fastethernet|port-channel)\b/g, "interface range $1");
+
+    // Replace standalone int with interface
+    s = s.replace(/\bint\b/g, "interface");
+
+    // If expected is an interface range (e.g. interface range gigabitEthernet 1/0/3-4) and user typed just "g1/0/3-4" or "gigabitethernet 1/0/3-4"
+    if (targetExp && targetExp.includes("range") && /\d+-\d+/.test(s) && !s.includes("range")) {
+      s = s.replace(/^(?:interface\s+)?/, "interface range ");
+    }
+
+    // If command starts directly with an interface type or range (e.g. "gigabitethernet 1/0/1" or "fastethernet 0/1"), prepend "interface "
+    if (/^(?:gigabitethernet|fastethernet|port-channel)\b/.test(s)) {
+      s = "interface " + s;
+    }
+
+    // Collapse multiple spaces
+    s = s.replace(/\s+/g, " ").trim();
+
+    return s;
   };
 
-  return normalize(act) === normalize(exp);
+  const normAct = normalize(act, exp);
+  const normExp = normalize(exp, exp);
+
+  return normAct === normExp;
 }
 
 function renderMiniTopology(labKey, devKey) {

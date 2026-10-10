@@ -1584,6 +1584,19 @@ body {
 .editor-tools {
   display: flex;
   gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+#togglePlaceholdersBtn.active {
+  background: rgba(255, 42, 95, 0.22);
+  border-color: var(--accent-neon);
+  color: #fff;
+  box-shadow: 0 0 12px var(--primary-red-glow);
+}
+
+.hide-placeholders .guided-input::placeholder {
+  opacity: 0 !important;
+  color: transparent !important;
 }
 
 /* Editor Textarea with Line Numbers */
