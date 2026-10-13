@@ -1,6 +1,6 @@
 {
   "name": "hsrp-exam-master",
-  "version": "1.0.0",
+  "version": "3.2.0",
   "description": "HSRP & FHRP Provmästare - Cisco Labb & Exam Trainer",
   "main": "server.js",
   "scripts": {
