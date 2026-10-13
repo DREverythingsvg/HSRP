@@ -859,6 +859,80 @@ const MASTER_QUESTIONS = [
     "correctIndex": 0,
     "explanation": "PDF Sida 4 & Labbguide: Klienten konfigureras med VIP (192.168.10.1), aldrig med de fysiska SVI-adresserna (.2 eller .3), för att redundansen ska fungera vid haveri.",
     "ref": "PDF Sida 4: 'kilenterna konfigueras att använda denna VIP som sin default gateway'"
+  },
+  {
+    "id": 53,
+    "category": "mac-calc",
+    "importance": "★ KOMMER PÅ PROV (SKRIV EGET SVAR)",
+    "type": "text-input",
+    "question": "Du sitter vid en Windows-klient (kommandotolken). Vilket kommando skriver du för att visa ARP-tabellen och kontrollera vilken virtuell MAC-adress som routerns VIP är bunden till?",
+    "context": `<div class="cmd-context-terminal">
+      <div class="cmd-terminal-bar">
+        <div class="cmd-window-dots">
+          <span class="cmd-dot red"></span>
+          <span class="cmd-dot yellow"></span>
+          <span class="cmd-dot green"></span>
+        </div>
+        <span class="cmd-term-title">Kommandotolken (cmd.exe) — Windows</span>
+      </div>
+      <div class="cmd-terminal-body">
+        <div class="cmd-term-line text-muted">Microsoft Windows [Version 10.0.19045]</div>
+        <div class="cmd-term-line text-muted">(c) Microsoft Corporation. Med ensamrätt.</div>
+        <div class="cmd-term-blank"></div>
+        <div class="cmd-term-line active-prompt"><span class="cmd-prompt-text">C:\\Users\\gonriv&gt;</span> <span class="cmd-term-target-hint">_</span></div>
+      </div>
+    </div>`,
+    "inputPrompt": "Skriv in kommandot som ska köras vid prompten:",
+    "promptPrefix": "C:\\Users\\gonriv>",
+    "placeholder": "Skriv kommandot här (t.ex. arp -a)...",
+    "canonicalAnswer": "arp -a",
+    "options": ["arp -a"],
+    "correctIndex": 0,
+    "validRegex": /^\s*arp\s*[-/]?\s*[ag]\s*$/i,
+    "checkAnswer": function(userVal) {
+      const v = (userVal || "").trim().toLowerCase();
+      return v === "arp -a" || v === "arp-a" || /^\s*arp\s*[-/]?\s*[ag]\s*$/i.test(v);
+    },
+    "explanation": "I Windows kommandotolk kör man 'arp -a' (eller 'arp-a') för att lista datorns lokala ARP-tabell. Där visas Default Gateways IP (VIP, t.ex. 192.168.1.1 eller 10.1.1.1) bunden till HSRP-gruppens virtuella MAC-adress (t.ex. 00-00-0c-07-ac-96 dynamic eller 00-00-0c-07-ac-01 dynamic). Detta är en klassisk provfråga!",
+    "ref": "PDF Sida 7 & Provanteckning: 'C:/Users/gonriv> arp -a'"
+  },
+  {
+    "id": 54,
+    "category": "mac-calc",
+    "importance": "★ PROVBILD: BERÄKNA & SKRIV VMAC",
+    "type": "text-input",
+    "question": "Studera konfigurationen för R1 och HSRP-grupp 150 från provbilden. Vilken är den virtuella MAC-adressen? Skriv in MAC-adressen själv.",
+    "context": `<div class="exam-slide-card">
+      <div class="exam-slide-header">
+        <span class="slide-badge">📑 PROVBILD</span>
+        <h4 class="slide-title">Den virtuella mac-addressen - exempel</h4>
+      </div>
+      <div class="exam-slide-body">
+        <p class="slide-assumption">Vi antar att routrarna <strong>r1</strong> och <strong>r2</strong> konfigueras med <strong>HSRP-grupp 150</strong></p>
+        <p class="slide-addressing">IP-adressering r1: <code>192.168.1.2</code> och r2: <code>192.168.1.3</code> — VIP: <code>192.168.1.1</code></p>
+        <div class="slide-cli-box">
+          <div class="cli-line">R1(config)#  interface g0/1</div>
+          <div class="cli-line">R1 (config-if)# ip address 192.168.1.1 255.255.255.0</div>
+          <div class="cli-line">R1(config-if)#  standby 150 ip 192.168.1.1</div>
+          <div class="cli-line">R1(config-if)#  standby 150 priority 110</div>
+          <div class="cli-line">R1(config-if)#  standby 150 preempt</div>
+          <div class="cli-line">R1(config-if)#  no shutdown</div>
+        </div>
+        <div class="slide-exam-note">⚡ Studerande följande konfiguration: <strong>vilken är den virtuella mac-addressen?</strong> (Kommer på prov)</div>
+      </div>
+    </div>`,
+    "inputPrompt": "Beräkna och skriv in den virtuella MAC-adressen:",
+    "promptPrefix": "MAC:",
+    "placeholder": "T.ex. 0000.0c07.ac96...",
+    "canonicalAnswer": "0000.0c07.ac96",
+    "options": ["0000.0c07.ac96"],
+    "correctIndex": 0,
+    "checkAnswer": function(userVal) {
+      const clean = (userVal || "").trim().toLowerCase().replace(/[:.\-\s]/g, "");
+      return clean === "00000c07ac96";
+    },
+    "explanation": "Beräkning av virtuell MAC-adress för HSRP version 1:\n1. Standardprefix för HSRPv1 är alltid: 0000.0c07.acXX (Cisco OUI 0000.0c + HSRPv1-ID 07.ac + 2 hex-siffror för gruppnummer).\n2. Gruppnumret är 150 i decimal form.\n3. Omvandling till hexadecimalt: 150 / 16 = 9 med rest 6 (9 * 16 = 144, 150 - 144 = 6). Talet blir 96 i hex!\n4. Den virtuella MAC-adressen blir: 0000.0c07.ac96 (i Windows skrivs den: 00-00-0c-07-ac-96).\n\n(Eftersom 'standby version 2' inte är angivet i konfigurationen används standarden HSRPv1).",
+    "ref": "PDF Sida 5 & 6: 'Den virtuella mac-addressen - exempel / 150/16 = 9 rest 6 -> 0000.0c07.AC96'"
   }
 ];
 
@@ -1319,6 +1393,15 @@ const COMMANDS_DB = [
     prompt: "MLS1#",
     canonical: "debug standby events",
     validRegex: /^(debug|deb)\s+stand(by)?\s+events$/i
+  },
+  {
+    id: "cmd-arp-a",
+    title: "16. Kontrollera ARP-tabell i Windows (Kommer på prov)",
+    desc: "På PC-klienten i Windows kommandotolk (C:\\Users\\gonriv>), kör kommandot för att visa ARP-cachen och verifiera att Default Gateway (VIP) är bunden till den virtuella MAC-adressen.",
+    context: "Microsoft Windows [Version 10.0.19045] - Kommandotolken",
+    prompt: "C:\\Users\\gonriv>",
+    canonical: "arp -a",
+    validRegex: /^\s*arp\s*[-/]?\s*[ag]\s*$/i
   }
 ];
 
@@ -2660,6 +2743,9 @@ function startNewQuizSession(customPool = null) {
 
   // Shuffle questions randomly
   state.quiz.shuffledQuestions = shuffleArray(pool).map(q => {
+    if (q.type === 'text-input') {
+      return { ...q };
+    }
     // For each question, shuffle options and track the correct answer text
     const correctText = q.options[q.correctIndex];
     const shuffledOpts = shuffleArray(q.options);
@@ -2713,29 +2799,171 @@ function renderCurrentQuizQuestion() {
   document.getElementById("qImportanceTag").textContent = currentQ.importance || "★ KOMMER PÅ PROV";
   document.getElementById("quizQuestionText").textContent = currentQ.question;
 
-  // Options
+  // Question Context (Preview slide or Windows cmd prompt)
+  const contextEl = document.getElementById("quizQuestionContext");
+  if (currentQ.context) {
+    contextEl.innerHTML = currentQ.context;
+    contextEl.style.display = "block";
+  } else {
+    contextEl.style.display = "none";
+    contextEl.innerHTML = "";
+  }
+
+  // Options or Text Input Area
   const container = document.getElementById("quizOptionsContainer");
   container.innerHTML = "";
 
-  const keys = ["A", "B", "C", "D"];
-  currentQ.options.forEach((optText, idx) => {
-    const btn = document.createElement("button");
-    btn.className = "quiz-option-btn";
-    btn.innerHTML = `
-      <span class="option-key">${keys[idx]}</span>
-      <span class="option-label">${escapeHtml(optText)}</span>
+  if (currentQ.type === "text-input") {
+    container.innerHTML = `
+      <div class="quiz-input-wrapper">
+        <label class="quiz-input-prompt-label" for="quizTextInputField">${escapeHtml(currentQ.inputPrompt || "Skriv in svaret själv:")}</label>
+        <div class="quiz-input-field-group">
+          ${currentQ.promptPrefix ? `<span class="quiz-prompt-prefix">${escapeHtml(currentQ.promptPrefix)}</span>` : ""}
+          <input type="text" id="quizTextInputField" class="quiz-custom-input" placeholder="${escapeHtml(currentQ.placeholder || "Skriv ditt svar här...")}" autocomplete="off" spellcheck="false">
+          <button id="quizSubmitInputBtn" class="btn btn-primary quiz-submit-answer-btn" type="button">
+            <span>Kontrollera</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </button>
+        </div>
+        <div class="quiz-input-hint">💡 Tryck <strong>Enter</strong> eller klicka på Kontrollera för att rätta ditt svar</div>
+        <div class="quiz-input-feedback" id="quizInputFeedback" style="display: none;"></div>
+      </div>
     `;
 
-    btn.addEventListener("click", () => {
-      handleOptionSelected(idx, btn);
+    const inputField = document.getElementById("quizTextInputField");
+    const submitBtn = document.getElementById("quizSubmitInputBtn");
+
+    setTimeout(() => {
+      if (inputField) inputField.focus();
+    }, 60);
+
+    const onUserSubmit = () => {
+      if (state.quiz.answered) return;
+      handleTextInputSelected(inputField.value, inputField, submitBtn);
+    };
+
+    inputField.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        onUserSubmit();
+      }
     });
 
-    container.appendChild(btn);
-  });
+    submitBtn.addEventListener("click", () => {
+      onUserSubmit();
+    });
+  } else {
+    const keys = ["A", "B", "C", "D"];
+    currentQ.options.forEach((optText, idx) => {
+      const btn = document.createElement("button");
+      btn.className = "quiz-option-btn";
+      btn.innerHTML = `
+        <span class="option-key">${keys[idx]}</span>
+        <span class="option-label">${escapeHtml(optText)}</span>
+      `;
+
+      btn.addEventListener("click", () => {
+        handleOptionSelected(idx, btn);
+      });
+
+      container.appendChild(btn);
+    });
+  }
 
   // Hide explanation and disable next button
   document.getElementById("quizExplanationBox").style.display = "none";
   document.getElementById("nextQuestionBtn").disabled = true;
+}
+
+function handleTextInputSelected(userVal, inputField, submitBtn) {
+  if (state.quiz.answered) return;
+  state.quiz.answered = true;
+
+  const currentQ = state.quiz.shuffledQuestions[state.quiz.currentIndex];
+  let isCorrect = false;
+  const trimmed = (userVal || "").trim();
+
+  if (typeof currentQ.checkAnswer === "function") {
+    isCorrect = currentQ.checkAnswer(trimmed);
+  } else if (currentQ.validRegex) {
+    isCorrect = currentQ.validRegex.test(trimmed);
+  } else if (currentQ.canonicalAnswer) {
+    isCorrect = trimmed.toLowerCase() === currentQ.canonicalAnswer.toLowerCase();
+  }
+
+  inputField.disabled = true;
+  submitBtn.disabled = true;
+
+  const feedbackEl = document.getElementById("quizInputFeedback");
+
+  if (isCorrect) {
+    sfx.playCorrect();
+    inputField.classList.add("correct");
+    state.quiz.scoreCorrect++;
+    state.quiz.streak++;
+    state.streak = (state.streak || 0) + 1;
+
+    if (feedbackEl) {
+      feedbackEl.className = "quiz-input-feedback correct";
+      feedbackEl.innerHTML = `
+        <div class="feedback-badge">✅ Helt Rätt!</div>
+        <div class="feedback-msg">Ditt svar är korrekt: <code>${escapeHtml(trimmed)}</code></div>
+      `;
+      feedbackEl.style.display = "block";
+    }
+  } else {
+    sfx.playWrong();
+    inputField.classList.add("wrong");
+    state.quiz.scoreWrong++;
+    state.quiz.streak = 0;
+    state.streak = 0;
+
+    // Save for retry round
+    const origQ = MASTER_QUESTIONS.find(q => q.id === currentQ.id) || currentQ;
+    if (!state.quiz.currentWrongQuestions.some(q => q.id === origQ.id)) {
+      state.quiz.currentWrongQuestions.push(origQ);
+    }
+
+    if (feedbackEl) {
+      feedbackEl.className = "quiz-input-feedback wrong";
+      feedbackEl.innerHTML = `
+        <div class="feedback-badge">❌ Tyvärr felaktigt svar</div>
+        <div class="feedback-details">
+          <div>Ditt svar: <code>${escapeHtml(trimmed || "(inget svar)")}</code></div>
+          <div>Rätt svar på provet: <strong><code>${escapeHtml(currentQ.canonicalAnswer)}</code></strong></div>
+        </div>
+      `;
+      feedbackEl.style.display = "block";
+    }
+  }
+
+  // Update in-card score display immediately
+  const quizScoreDisp = document.getElementById("quizScoreDisplay");
+  if (quizScoreDisp) quizScoreDisp.textContent = `Rätt: ${state.quiz.scoreCorrect} | Fel: ${state.quiz.scoreWrong}`;
+
+  // Show explanation
+  const expBox = document.getElementById("quizExplanationBox");
+  const expTitle = document.getElementById("explanationHeader");
+  const expIcon = document.getElementById("explanationIcon");
+  const expText = document.getElementById("explanationText");
+  const expRef = document.getElementById("explanationRef");
+
+  if (isCorrect) {
+    expIcon.textContent = "✅";
+    expTitle.textContent = "Helt Rätt!";
+    expTitle.style.color = "var(--color-success)";
+  } else {
+    expIcon.textContent = "❌";
+    expTitle.textContent = "Tyvärr felaktigt svar";
+    expTitle.style.color = "var(--primary-red)";
+  }
+
+  expText.textContent = currentQ.explanation;
+  expRef.textContent = `Källa: ${currentQ.ref}`;
+  expBox.style.display = "block";
+
+  document.getElementById("nextQuestionBtn").disabled = false;
+  updateGlobalScore();
 }
 
 function handleOptionSelected(selectedIdx, clickedBtn) {
